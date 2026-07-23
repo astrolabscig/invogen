@@ -1,0 +1,209 @@
+{% extends 'base.html' %}
+
+{% block nav_dashboard %}active{% endblock %}
+
+{% block header_title %}Dashboard{% endblock %}
+{% block header_subtitle %}Overview of your invoicing health{% endblock %}
+
+{% block content %}
+<style>
+    .dashboard-grid {
+        display: grid;
+        grid-template-columns: 1.8fr 1fr;
+        gap: 30px;
+    }
+    
+    .stats-container {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 20px;
+    }
+    
+    .stat-card-new {
+        border-radius: 20px;
+        padding: 24px;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        position: relative;
+        overflow: hidden;
+        border: none;
+    }
+    
+    .stat-card-new.purple { background-color: var(--card-purple-bg); color: var(--card-purple-text); }
+    .stat-card-new.blue { background-color: var(--card-blue-bg); color: var(--card-blue-text); }
+    .stat-card-new.green { background-color: var(--card-green-bg); color: var(--card-green-text); }
+    
+    .stat-badge {
+        font-size: 11px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.8px;
+        opacity: 0.8;
+    }
+    
+    .stat-amount {
+        font-family: 'Outfit', sans-serif;
+        font-size: 28px;
+        font-weight: 700;
+    }
+    
+    .stat-subtext {
+        font-size: 12px;
+        opacity: 0.7;
+    }
+
+    .main-panel-section {
+        display: flex;
+        flex-direction: column;
+        gap: 25px;
+    }
+
+    .card-title-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 15px;
+    }
+
+    .card-title-row h3 {
+        font-family: 'Outfit', sans-serif;
+        font-size: 18px;
+        font-weight: 600;
+    }
+
+    /* Right Sidebar Cards */
+    .right-sidebar-section {
+        display: flex;
+        flex-direction: column;
+        gap: 25px;
+    }
+
+    .upgrade-pro-card {
+        background: linear-gradient(135deg, #176b6d 0%, #0d3b44 100%);
+        color: #fff;
+        border-radius: 20px;
+        padding: 30px 24px;
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+        position: relative;
+    }
+
+    .upgrade-title {
+        font-family: 'Outfit', sans-serif;
+        font-size: 20px;
+        font-weight: 600;
+    }
+
+    .upgrade-price {
+        font-size: 28px;
+        font-weight: 700;
+    }
+    
+    .upgrade-price span {
+        font-size: 14px;
+        font-weight: 400;
+        opacity: 0.7;
+    }
+
+    .btn-upgrade {
+        background-color: var(--lime-active);
+        color: var(--lime-text);
+        border: none;
+        border-radius: 12px;
+        padding: 12px;
+        font-weight: 600;
+        cursor: pointer;
+        text-align: center;
+        text-decoration: none;
+        font-size: 14px;
+        transition: var(--transition-smooth);
+    }
+
+    .btn-upgrade:hover {
+        opacity: 0.9;
+    }
+</style>
+
+<div class="stats-container">
+    <div class="stat-card-new purple">
+        <span class="stat-badge">Total Outstanding</span>
+        <span class="stat-amount">${{ total_outstanding }}</span>
+        <span class="stat-subtext">Sum of SENT invoices</span>
+    </div>
+    <div class="stat-card-new green">
+        <span class="stat-badge">Total Paid</span>
+        <span class="stat-amount">${{ total_paid }}</span>
+        <span class="stat-subtext">Sum of PAID invoices</span>
+    </div>
+    <div class="stat-card-new blue">
+        <span class="stat-badge">Draft Invoices</span>
+        <span class="stat-amount">{{ draft_count }}</span>
+        <span class="stat-subtext">Unissued templates</span>
+    </div>
+</div>
+
+<div class="dashboard-grid">
+    <div class="main-panel-section">
+        <div class="card">
+            <div class="card-title-row">
+                <h3>Recent Invoices</h3>
+                <a href="{% url 'invoice_create' %}" class="btn-premium" style="padding: 8px 16px; font-size: 12px;">
+                    <i class="fa-solid fa-plus"></i> Create Invoice
+                </a>
+            </div>
+            
+            {% if recent_invoices %}
+            <table class="premium-table">
+                <thead>
+                    <tr>
+                        <th>Invoice No</th>
+                        <th>Client</th>
+                        <th>Status</th>
+                        <th>Total</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for invoice in recent_invoices %}
+                    <tr>
+                        <td style="font-weight: 600;">{{ invoice.number }}</td>
+                        <td>{{ invoice.client.name }}</td>
+                        <td>
+                            <span class="badge bg-{{ invoice.status|lower }}">{{ invoice.status }}</span>
+                        </td>
+                        <td style="font-weight: 600;">${{ invoice.total }}</td>
+                        <td>
+                            <a href="{% url 'invoice_detail' invoice.pk %}" class="icon-badge-btn" style="width: 32px; height: 32px; display: inline-flex;"><i class="fa-solid fa-eye" style="font-size: 12px;"></i></a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% else %}
+            <p style="color: var(--text-muted); text-align: center; padding: 20px;">No invoices found. Generate an invoice to get started.</p>
+            {% endif %}
+        </div>
+    </div>
+    
+    <div class="right-sidebar-section">
+        <div class="upgrade-pro-card">
+            <span class="upgrade-title">Upgrade to Pro</span>
+            <div class="upgrade-price">$4.20 <span>/ Month</span></div>
+            <p style="font-size: 12px; opacity: 0.8; line-height: 1.4;">Get access to automatic PDF sending, payment gateways, and direct email dispatching.</p>
+            <a href="#" class="btn-upgrade">Upgrade Now</a>
+        </div>
+        
+        <div class="card" style="padding: 20px;">
+            <div class="card-title-row" style="margin-bottom: 10px;">
+                <h3 style="font-size: 16px;">Quick Actions</h3>
+            </div>
+            <div style="display: flex; flex-direction: column; gap: 10px;">
+                <a href="{% url 'client_create' %}" class="btn-premium btn-secondary-premium" style="justify-content: center;"><i class="fa-solid fa-user-plus"></i> Add Client</a>
+                <a href="{% url 'invoice_create' %}" class="btn-premium" style="justify-content: center;"><i class="fa-solid fa-file-invoice"></i> Create Invoice</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

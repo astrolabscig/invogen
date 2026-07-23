@@ -1,0 +1,43 @@
+{% extends 'base.html' %}
+
+{% block nav_clients %}active{% endblock %}
+
+{% block header_title %}Clients{% endblock %}
+{% block header_subtitle %}Manage your business clients{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-title-row">
+        <h3>All Clients</h3>
+        <a href="{% url 'client_create' %}" class="btn-premium"><i class="fa-solid fa-plus"></i> Add New Client</a>
+    </div>
+
+    {% if clients %}
+    <table class="premium-table">
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Company</th>
+                <th>Email</th>
+                <th style="text-align: right;">Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for client in clients %}
+            <tr>
+                <td style="font-weight: 600;">{{ client.name }}</td>
+                <td>{{ client.company|default:"-" }}</td>
+                <td>{{ client.email }}</td>
+                <td style="text-align: right;">
+                    <a href="{% url 'client_update' client.pk %}" class="icon-badge-btn" style="width: 32px; height: 32px; display: inline-flex;"><i class="fa-solid fa-pen" style="font-size: 12px;"></i></a>
+                    <a href="{% url 'client_delete' client.pk %}" class="icon-badge-btn" style="width: 32px; height: 32px; display: inline-flex; color: #dc2626;"><i class="fa-solid fa-trash" style="font-size: 12px;"></i></a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <p style="color: var(--text-muted); text-align: center; padding: 20px;">No clients found. Add a client to start generating invoices.</p>
+    {% endif %}
+</div>
+{% endblock %}

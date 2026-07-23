@@ -1,0 +1,27 @@
+{% extends 'base.html' %}
+
+{% block nav_invoices %}active{% endblock %}
+
+{% block header_title %}Delete Invoice{% endblock %}
+{% block header_subtitle %}Confirm invoice deletion{% endblock %}
+
+{% block content %}
+<div class="card" style="max-width: 500px; margin: auto; text-align: center; padding: 40px 24px;">
+    <div style="width: 64px; height: 64px; background-color: #fee2e2; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px auto; color: #ef4444;">
+        <i class="fa-solid fa-triangle-exclamation" style="font-size: 28px;"></i>
+    </div>
+    
+    <h2 style="font-family: 'Outfit', sans-serif; font-size: 20px; font-weight: 600; margin-bottom: 12px;">Are you sure?</h2>
+    <p style="color: var(--text-muted); font-size: 14px; line-height: 1.5; margin-bottom: 24px;">
+        You are about to permanently delete invoice <strong>{{ object.number }}</strong>. This action cannot be undone and its line items will be cascadingly deleted.
+    </p>
+
+    <form method="post">
+        {% csrf_token %}
+        <div style="display: flex; gap: 12px; justify-content: center;">
+            <button type="submit" class="btn-premium" style="background-color: #ef4444;"><i class="fa-solid fa-trash"></i> Yes, Delete</button>
+            <a href="{% url 'invoice_list' %}" class="btn-premium btn-secondary-premium">Cancel</a>
+        </div>
+    </form>
+</div>
+{% endblock %}

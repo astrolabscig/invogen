@@ -5,9 +5,20 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.db import transaction
 from django.db.models import Sum, Count, Q
 from django.http import HttpResponseBadRequest
+from django.contrib.auth.forms import UserCreationForm
 
-from .models import Invoice, LineItem
+class RegisterView(CreateView):
+    form_class = UserCreationForm
+    template_name = 'registration/register.html'
+    success_url = reverse_lazy('login')
+
+
+from .models import Invoice, LineItem, Client
 from .forms import InvoiceForm, LineItemFormSet
+
+class ClientOwnershipMixin(LoginRequiredMixin):
+    def get_queryset(self):
+        return Client.objects.filter(owner=self.request.user)
 
 class InvoiceOwnershipMixin(LoginRequiredMixin):
     def get_queryset(self):
@@ -35,6 +46,32 @@ class DashboardView(LoginRequiredMixin, TemplateView):
             'recent_invoices': recent_invoices,
         })
         return context
+
+class ClientListView(ClientOwnershipMixin, ListView):
+    model = Client
+    template_name = 'billing/client_list.html'
+    context_object_name = 'clients'
+
+class ClientCreateView(ClientOwnershipMixin, CreateView):
+    model = Client
+    template_name = 'billing/client_form.html'
+    fields = ['name', 'email', 'company', 'address']
+    success_url = reverse_lazy('client_list')
+
+    def form_valid(self, form):
+        form.instance.owner = self.request.user
+        return super().form_valid(form)
+
+class ClientUpdateView(ClientOwnershipMixin, UpdateView):
+    model = Client
+    template_name = 'billing/client_form.html'
+    fields = ['name', 'email', 'company', 'address']
+    success_url = reverse_lazy('client_list')
+
+class ClientDeleteView(ClientOwnershipMixin, DeleteView):
+    model = Client
+    template_name = 'billing/client_confirm_delete.html'
+    success_url = reverse_lazy('client_list')
 
 class InvoiceListView(InvoiceOwnershipMixin, ListView):
     model = Invoice

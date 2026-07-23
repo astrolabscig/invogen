@@ -1,0 +1,54 @@
+{% extends 'base.html' %}
+
+{% block nav_invoices %}active{% endblock %}
+
+{% block header_title %}Invoices{% endblock %}
+{% block header_subtitle %}Manage and track invoice statuses{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-title-row">
+        <h3>All Invoices</h3>
+        <a href="{% url 'invoice_create' %}" class="btn-premium"><i class="fa-solid fa-plus"></i> Create Invoice</a>
+    </div>
+
+    {% if invoices %}
+    <table class="premium-table">
+        <thead>
+            <tr>
+                <th>Invoice No</th>
+                <th>Client</th>
+                <th>Status</th>
+                <th>Issue Date</th>
+                <th>Due Date</th>
+                <th>Total</th>
+                <th style="text-align: right;">Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for invoice in invoices %}
+            <tr>
+                <td style="font-weight: 600;">{{ invoice.number }}</td>
+                <td>{{ invoice.client.name }}</td>
+                <td>
+                    <span class="badge bg-{{ invoice.status|lower }}">{{ invoice.status }}</span>
+                </td>
+                <td>{{ invoice.issue_date }}</td>
+                <td>{{ invoice.due_date|default:"-" }}</td>
+                <td style="font-weight: 600;">${{ invoice.total }}</td>
+                <td style="text-align: right;">
+                    <a href="{% url 'invoice_detail' invoice.pk %}" class="icon-badge-btn" style="width: 32px; height: 32px; display: inline-flex;"><i class="fa-solid fa-eye" style="font-size: 12px;"></i></a>
+                    {% if invoice.status == 'DRAFT' %}
+                    <a href="{% url 'invoice_update' invoice.pk %}" class="icon-badge-btn" style="width: 32px; height: 32px; display: inline-flex;"><i class="fa-solid fa-pen" style="font-size: 12px;"></i></a>
+                    <a href="{% url 'invoice_delete' invoice.pk %}" class="icon-badge-btn" style="width: 32px; height: 32px; display: inline-flex; color: #dc2626;"><i class="fa-solid fa-trash" style="font-size: 12px;"></i></a>
+                    {% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <p style="color: var(--text-muted); text-align: center; padding: 20px;">No invoices found.</p>
+    {% endif %}
+</div>
+{% endblock %}

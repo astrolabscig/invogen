@@ -1,0 +1,113 @@
+{% extends 'base.html' %}
+
+{% block nav_invoices %}active{% endblock %}
+
+{% block header_title %}Invoice Details{% endblock %}
+{% block header_subtitle %}View and manage status transitions{% endblock %}
+
+{% block content %}
+<style>
+    .invoice-meta-grid {
+        display: grid;
+        grid-template-columns: 1fr 1.2fr;
+        gap: 30px;
+        margin-top: 20px;
+    }
+    
+    .meta-box {
+        padding: 20px;
+        border: 1px solid var(--border-color);
+        border-radius: 12px;
+        background-color: #fafbfc;
+    }
+    
+    .meta-box h4 {
+        font-family: 'Outfit', sans-serif;
+        font-size: 14px;
+        color: var(--text-muted);
+        text-transform: uppercase;
+        margin-bottom: 12px;
+        letter-spacing: 0.5px;
+    }
+    
+    .meta-box p {
+        font-size: 15px;
+        line-height: 1.6;
+    }
+</style>
+
+<div class="card">
+    <div class="card-title-row" style="margin-bottom: 20px;">
+        <div>
+            <h2 style="font-family: 'Outfit', sans-serif; font-size: 24px; font-weight: 700;">Invoice #{{ invoice.number }}</h2>
+            <span class="badge bg-{{ invoice.status|lower }}" style="margin-top: 8px;">{{ invoice.status }}</span>
+        </div>
+        <div class="actions">
+            {% if invoice.status == 'DRAFT' %}
+            <a href="{% url 'invoice_update' invoice.pk %}" class="btn-premium btn-secondary-premium"><i class="fa-solid fa-pen"></i> Edit Invoice</a>
+            <form method="post" action="{% url 'invoice_status_update' invoice.pk 'sent' %}" style="display:inline;">
+                {% csrf_token %}
+                <button type="submit" class="btn-premium"><i class="fa-solid fa-paper-plane"></i> Mark as Sent</button>
+            </form>
+            {% elif invoice.status == 'SENT' %}
+            <form method="post" action="{% url 'invoice_status_update' invoice.pk 'paid' %}" style="display:inline;">
+                {% csrf_token %}
+                <button type="submit" class="btn-premium" style="background-color: #10b981;"><i class="fa-solid fa-check"></i> Mark as Paid</button>
+            </form>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="invoice-meta-grid">
+        <div class="meta-box">
+            <h4>Billed To</h4>
+            <p>
+                <strong>{{ invoice.client.name }}</strong><br>
+                {% if invoice.client.company %}{{ invoice.client.company }}<br>{% endif %}
+                <span style="color: var(--text-muted);">{{ invoice.client.email }}</span><br>
+                <span style="font-size: 13px; display: block; margin-top: 8px; color: var(--text-muted);">{{ invoice.client.address|linebreaksbr }}</span>
+            </p>
+        </div>
+        <div class="meta-box">
+            <h4>Invoice Info</h4>
+            <p style="margin-bottom: 8px;"><strong>Issue Date:</strong> {{ invoice.issue_date }}</p>
+            <p style="margin-bottom: 12px;"><strong>Due Date:</strong> {{ invoice.due_date|default:"-" }}</p>
+            {% if invoice.notes %}
+            <p><strong>Notes:</strong><br><span style="font-size: 13px; color: var(--text-muted);">{{ invoice.notes|linebreaksbr }}</span></p>
+            {% endif %}
+        </div>
+    </div>
+
+    <h3 style="font-family: 'Outfit', sans-serif; font-size: 18px; margin-top: 35px; margin-bottom: 15px;">Line Items</h3>
+    <table class="premium-table">
+        <thead>
+            <tr>
+                <th>Description</th>
+                <th style="text-align: right;">Quantity</th>
+                <th style="text-align: right;">Unit Price</th>
+                <th style="text-align: right;">Subtotal</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in invoice.items.all %}
+            <tr>
+                <td style="font-weight: 500;">{{ item.description }}</td>
+                <td style="text-align: right;">{{ item.quantity }}</td>
+                <td style="text-align: right;">${{ item.unit_price }}</td>
+                <td style="text-align: right; font-weight: 600;">${{ item.subtotal }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+        <tfoot>
+            <tr style="background-color: #fafbfc;">
+                <th colspan="3" style="text-align: right; font-size: 14px; font-weight: 700; color: var(--text-dark);">Total:</th>
+                <th style="text-align: right; font-size: 16px; font-weight: 700; color: var(--text-dark);">${{ invoice.total }}</th>
+            </tr>
+        </tfoot>
+    </table>
+    
+    <div style="margin-top: 30px;">
+        <a href="{% url 'invoice_list' %}" style="text-decoration: none; color: var(--text-muted); font-size: 14px; font-weight: 500;"><i class="fa-solid fa-arrow-left"></i> Back to Invoices</a>
+    </div>
+</div>
+{% endblock %}

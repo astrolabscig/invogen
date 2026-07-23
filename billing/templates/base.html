@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Invogen — Premium Freelance Invoice Manager</title>
+    <!-- Google Fonts Inter & Outfit -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --bg-main: #f5f6f8;
+            --bg-sidebar: #ffffff;
+            --text-dark: #1a1d1f;
+            --text-muted: #6f767e;
+            --border-color: #efeff4;
+            --lime-active: #d2f35c;
+            --lime-text: #1a1d1f;
+            
+            /* Card Colors matching the design */
+            --card-purple-bg: #e8e1f5;
+            --card-purple-text: #6b46c1;
+            --card-blue-bg: #e1ebf5;
+            --card-blue-text: #2b6cb0;
+            --card-green-bg: #e1f5ec;
+            --card-green-text: #2f855a;
+            
+            --shadow-subtle: 0px 4px 12px rgba(0, 0, 0, 0.03);
+            --shadow-card: 0px 10px 30px rgba(0, 0, 0, 0.04);
+            --transition-smooth: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-main);
+            color: var(--text-dark);
+            display: flex;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* Sidebar Styling */
+        aside {
+            width: 260px;
+            background-color: var(--bg-sidebar);
+            border-right: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+            padding: 30px 20px;
+            position: fixed;
+            height: 100vh;
+            left: 0;
+            top: 0;
+            z-index: 100;
+        }
+
+        .logo-container {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 40px;
+            padding-left: 10px;
+        }
+
+        .logo-icon {
+            width: 32px;
+            height: 32px;
+            background: linear-gradient(135deg, #1a1d1f 0%, #3a3f42 100%);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #fff;
+            font-weight: 700;
+            font-family: 'Outfit', sans-serif;
+        }
+
+        .logo-text {
+            font-family: 'Outfit', sans-serif;
+            font-size: 22px;
+            font-weight: 700;
+            color: var(--text-dark);
+            letter-spacing: -0.5px;
+        }
+
+        .menu-list {
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            flex-grow: 1;
+        }
+
+        .menu-item a {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            padding: 12px 16px;
+            color: var(--text-muted);
+            text-decoration: none;
+            font-weight: 500;
+            font-size: 15px;
+            border-radius: 12px;
+            transition: var(--transition-smooth);
+        }
+
+        .menu-item a i {
+            font-size: 18px;
+            width: 20px;
+            text-align: center;
+        }
+
+        /* Active Menu State */
+        .menu-item.active a {
+            background-color: var(--lime-active);
+            color: var(--lime-text);
+            font-weight: 600;
+        }
+
+        .menu-item a:hover:not(.active a) {
+            background-color: #f5f5f7;
+            color: var(--text-dark);
+        }
+
+        /* User Profile in Sidebar */
+        .user-profile-sidebar {
+            border-top: 1px solid var(--border-color);
+            padding-top: 20px;
+            margin-top: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .user-info-row {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .user-avatar {
+            width: 42px;
+            height: 42px;
+            border-radius: 50%;
+            background-color: #e2e8f0;
+            background-image: url('https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&q=80&w=120');
+            background-size: cover;
+            background-position: center;
+        }
+
+        .user-details {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .user-name {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text-dark);
+        }
+
+        .user-role {
+            font-size: 12px;
+            color: var(--text-muted);
+        }
+
+        .logout-btn {
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            font-size: 14px;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            cursor: pointer;
+            width: 100%;
+            padding: 8px 12px;
+            border-radius: 8px;
+            transition: var(--transition-smooth);
+            text-align: left;
+        }
+
+        .logout-btn:hover {
+            background-color: #fff0f0;
+            color: #dc2626;
+        }
+
+        /* Main Content Container */
+        .main-wrapper {
+            margin-left: 260px;
+            flex-grow: 1;
+            padding: 40px;
+            max-width: 1200px;
+            display: flex;
+            flex-direction: column;
+            gap: 30px;
+        }
+
+        /* Top Header */
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header-title-section h1 {
+            font-family: 'Outfit', sans-serif;
+            font-size: 28px;
+            font-weight: 700;
+            color: var(--text-dark);
+        }
+
+        .header-date {
+            font-size: 14px;
+            color: var(--text-muted);
+            margin-top: 4px;
+        }
+
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .icon-badge-btn {
+            width: 40px;
+            height: 40px;
+            background-color: #fff;
+            border: 1px solid var(--border-color);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-dark);
+            cursor: pointer;
+            transition: var(--transition-smooth);
+        }
+
+        .icon-badge-btn:hover {
+            background-color: var(--bg-main);
+        }
+
+        /* Elements Styling */
+        .card {
+            background: #fff;
+            border-radius: 16px;
+            border: 1px solid var(--border-color);
+            box-shadow: var(--shadow-card);
+            padding: 24px;
+        }
+
+        .btn-premium {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--text-dark);
+            color: #fff;
+            font-weight: 600;
+            font-size: 14px;
+            padding: 12px 24px;
+            border-radius: 12px;
+            border: none;
+            cursor: pointer;
+            transition: var(--transition-smooth);
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-premium:hover {
+            opacity: 0.9;
+            transform: translateY(-1px);
+        }
+
+        .btn-secondary-premium {
+            background-color: #fff;
+            border: 1px solid var(--border-color);
+            color: var(--text-dark);
+        }
+
+        .btn-secondary-premium:hover {
+            background-color: var(--bg-main);
+        }
+
+        /* Generic table styles */
+        table.premium-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+
+        table.premium-table th, table.premium-table td {
+            padding: 16px 20px;
+            text-align: left;
+            border-bottom: 1px solid var(--border-color);
+            font-size: 14px;
+        }
+
+        table.premium-table th {
+            font-weight: 600;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            font-size: 11px;
+            letter-spacing: 0.8px;
+            background-color: #fafbfc;
+        }
+
+        table.premium-table tr:hover td {
+            background-color: #fafbfc;
+        }
+
+        /* Responsive */
+        @media (max-width: 1024px) {
+            aside {
+                width: 80px;
+                padding: 30px 10px;
+            }
+            .logo-text, .user-details, .logout-text, .logo-container span {
+                display: none;
+            }
+            .main-wrapper {
+                margin-left: 80px;
+                padding: 24px;
+            }
+            .logo-container {
+                justify-content: center;
+                padding-left: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    {% if user.is_authenticated %}
+    <aside>
+        <div class="logo-container">
+            <div class="logo-icon"><i class="fa-solid fa-bolt"></i></div>
+            <span class="logo-text">Invogen</span>
+        </div>
+
+        <ul class="menu-list">
+            <li class="menu-item {% block nav_dashboard %}{% endblock %}">
+                <a href="{% url 'dashboard' %}">
+                    <i class="fa-solid fa-chart-pie"></i>
+                    <span>Dashboard</span>
+                </a>
+            </li>
+            <li class="menu-item {% block nav_clients %}{% endblock %}">
+                <a href="{% url 'client_list' %}">
+                    <i class="fa-solid fa-users"></i>
+                    <span>Clients</span>
+                </a>
+            </li>
+            <li class="menu-item {% block nav_invoices %}{% endblock %}">
+                <a href="{% url 'invoice_list' %}">
+                    <i class="fa-solid fa-file-invoice-dollar"></i>
+                    <span>Invoices</span>
+                </a>
+            </li>
+        </ul>
+
+        <div class="user-profile-sidebar">
+            <div class="user-info-row">
+                <div class="user-avatar"></div>
+                <div class="user-details">
+                    <span class="user-name">{{ user.username|title }}</span>
+                    <span class="user-role">Freelancer</span>
+                </div>
+            </div>
+            
+            <form action="{% url 'logout' %}" method="post" style="display: inline; width: 100%;">
+                {% csrf_token %}
+                <button type="submit" class="logout-btn">
+                    <i class="fa-solid fa-right-from-bracket"></i>
+                    <span class="logout-text">Log Out</span>
+                </button>
+            </form>
+        </div>
+    </aside>
+    {% endif %}
+
+    <div class="main-wrapper" style="width: 100%; {% if not user.is_authenticated %}margin-left: 0; max-width: 500px; margin: auto; padding-top: 10vh;{% endif %}">
+        {% if user.is_authenticated %}
+        <header>
+            <div class="header-title-section">
+                <h1>{% block header_title %}Dashboard{% endblock %}</h1>
+                <div class="header-date">{% block header_subtitle %}23rd Jul 2026{% endblock %}</div>
+            </div>
+            <div class="header-actions">
+                <div class="icon-badge-btn"><i class="fa-regular fa-comment"></i></div>
+                <div class="icon-badge-btn"><i class="fa-regular fa-bell"></i></div>
+            </div>
+        </header>
+        {% endif %}
+
+        {% block content %}{% endblock %}
+    </div>
+
+</body>
+</html>

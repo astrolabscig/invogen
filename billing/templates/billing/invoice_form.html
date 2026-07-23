@@ -1,0 +1,113 @@
+{% extends 'base.html' %}
+
+{% block nav_invoices %}active{% endblock %}
+
+{% block header_title %}{% if form.instance.pk %}Edit Invoice{% else %}New Invoice{% endif %}{% endblock %}
+{% block header_subtitle %}Complete invoice metadata and line items{% endblock %}
+
+{% block content %}
+<style>
+    .invoice-form-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 20px;
+        margin-bottom: 25px;
+    }
+    
+    .form-group-premium {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+        margin-bottom: 16px;
+    }
+    
+    .form-group-premium label {
+        font-size: 13px;
+        font-weight: 600;
+        color: var(--text-dark);
+    }
+    
+    .form-group-premium input, .form-group-premium select, .form-group-premium textarea {
+        padding: 10px 14px;
+        border: 1px solid var(--border-color);
+        border-radius: 8px;
+        font-family: 'Inter', sans-serif;
+        font-size: 14px;
+        outline: none;
+        transition: var(--transition-smooth);
+    }
+    
+    .form-group-premium input:focus, .form-group-premium select:focus, .form-group-premium textarea:focus {
+        border-color: #a0aec0;
+    }
+</style>
+
+<div class="card">
+    <form method="post">
+        {% csrf_token %}
+        
+        <div class="invoice-form-grid">
+            <div>
+                <div class="form-group-premium">
+                    <label for="{{ form.client.id_for_label }}">Client</label>
+                    {{ form.client }}
+                </div>
+                <div class="form-group-premium">
+                    <label for="{{ form.number.id_for_label }}">Invoice Number</label>
+                    {{ form.number }}
+                </div>
+            </div>
+            <div>
+                <div class="form-group-premium">
+                    <label for="{{ form.issue_date.id_for_label }}">Issue Date</label>
+                    {{ form.issue_date }}
+                </div>
+                <div class="form-group-premium">
+                    <label for="{{ form.due_date.id_for_label }}">Due Date</label>
+                    {{ form.due_date }}
+                </div>
+            </div>
+        </div>
+        
+        <div class="form-group-premium">
+            <label for="{{ form.notes.id_for_label }}">Notes</label>
+            {{ form.notes }}
+        </div>
+
+        <h3 style="font-family: 'Outfit', sans-serif; font-size: 18px; margin-top: 30px; margin-bottom: 15px;">Line Items</h3>
+        {{ formset.management_form }}
+        <div id="formset-container" style="display: flex; flex-direction: column; gap: 12px;">
+            {% for inline_form in formset %}
+            <div class="formset-row" style="display: grid; grid-template-columns: 3fr 1fr 1fr auto; gap: 15px; align-items: end; padding: 16px; border: 1px solid var(--border-color); border-radius: 12px;">
+                {% for hidden in inline_form.hidden_fields %}
+                    {{ hidden }}
+                {% endfor %}
+                <div class="form-group-premium" style="margin: 0;">
+                    <label>Description</label>
+                    {{ inline_form.description }}
+                </div>
+                <div class="form-group-premium" style="margin: 0;">
+                    <label>Quantity</label>
+                    {{ inline_form.quantity }}
+                </div>
+                <div class="form-group-premium" style="margin: 0;">
+                    <label>Unit Price</label>
+                    {{ inline_form.unit_price }}
+                </div>
+                <div class="form-group-premium" style="margin: 0; align-items: center; justify-content: center;">
+                    {% if inline_form.instance.pk %}
+                        <label style="color: #dc2626;"><i class="fa-solid fa-trash-can"></i></label>
+                        <div style="margin-top: 10px;">{{ inline_form.DELETE }}</div>
+                    {% endif %}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        <div style="margin-top: 35px; display: flex; gap: 12px;">
+            <button type="submit" class="btn-premium">Save Invoice</button>
+            <a href="{% url 'invoice_list' %}" class="btn-premium btn-secondary-premium">Cancel</a>
+        </div>
+    </form>
+</div>
+{% endblock %}
