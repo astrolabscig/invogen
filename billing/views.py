@@ -37,12 +37,14 @@ class DashboardView(LoginRequiredMixin, TemplateView):
             draft_count=Count('id', filter=Q(status=Invoice.Status.DRAFT))
         )
         
+        client_count = Client.objects.filter(owner=self.request.user).count()
         recent_invoices = user_invoices.select_related('client').order_by('-created_at')[:5]
         
         context.update({
             'total_outstanding': stats['total_outstanding'] or 0,
             'total_paid': stats['total_paid'] or 0,
             'draft_count': stats['draft_count'] or 0,
+            'client_count': client_count,
             'recent_invoices': recent_invoices,
         })
         return context

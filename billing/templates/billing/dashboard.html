@@ -15,7 +15,7 @@
     
     .stats-container {
         display: grid;
-        grid-template-columns: repeat(3, 1fr);
+        grid-template-columns: repeat(4, 1fr);
         gap: 20px;
     }
     
@@ -33,6 +33,7 @@
     .stat-card-new.purple { background-color: var(--card-purple-bg); color: var(--card-purple-text); }
     .stat-card-new.blue { background-color: var(--card-blue-bg); color: var(--card-blue-text); }
     .stat-card-new.green { background-color: var(--card-green-bg); color: var(--card-green-text); }
+    .stat-card-new.yellow { background-color: #fef08a; color: #854d0e; }
     
     .stat-badge {
         font-size: 11px;
@@ -141,6 +142,11 @@
         <span class="stat-badge">Draft Invoices</span>
         <span class="stat-amount">{{ draft_count }}</span>
         <span class="stat-subtext">Unissued templates</span>
+    </div>
+    <div class="stat-card-new yellow">
+        <span class="stat-badge">Active Clients</span>
+        <span class="stat-amount">{{ client_count }}</span>
+        <span class="stat-subtext">Total tracked clients</span>
     </div>
 </div>
 
