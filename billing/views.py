@@ -1,8 +1,9 @@
 from django.shortcuts import render, get_object_or_404, redirect
 from django.urls import reverse_lazy, reverse
-from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView, View
+from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView, View, TemplateView
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.db import transaction
+from django.db.models import Sum, Count, Q
 from django.http import HttpResponseBadRequest
 
 from .models import Invoice, LineItem
@@ -11,6 +12,29 @@ from .forms import InvoiceForm, LineItemFormSet
 class InvoiceOwnershipMixin(LoginRequiredMixin):
     def get_queryset(self):
         return Invoice.objects.filter(owner=self.request.user)
+
+class DashboardView(LoginRequiredMixin, TemplateView):
+    template_name = 'billing/dashboard.html'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        user_invoices = Invoice.objects.filter(owner=self.request.user)
+        
+        stats = user_invoices.aggregate(
+            total_outstanding=Sum('total', filter=Q(status=Invoice.Status.SENT)),
+            total_paid=Sum('total', filter=Q(status=Invoice.Status.PAID)),
+            draft_count=Count('id', filter=Q(status=Invoice.Status.DRAFT))
+        )
+        
+        recent_invoices = user_invoices.select_related('client').order_by('-created_at')[:5]
+        
+        context.update({
+            'total_outstanding': stats['total_outstanding'] or 0,
+            'total_paid': stats['total_paid'] or 0,
+            'draft_count': stats['draft_count'] or 0,
+            'recent_invoices': recent_invoices,
+        })
+        return context
 
 class InvoiceListView(InvoiceOwnershipMixin, ListView):
     model = Invoice
