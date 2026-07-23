@@ -3,5 +3,7 @@
 db.sqlite3
 __pycache__/
 *.pyc
+APP_OVERVIEW.md
+
 ANTIGRAVITY_BUILD_BRIEF.md
 
