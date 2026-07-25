@@ -1,9 +1,10 @@
-import os
 import random
 from datetime import date, timedelta
+from decimal import Decimal
 from django.core.management.base import BaseCommand
 from django.contrib.auth.models import User
 from billing.models import Client, Invoice, LineItem
+
 
 class Command(BaseCommand):
     help = 'Seeds the database with a demo user, clients, and invoices.'
@@ -49,22 +50,22 @@ class Command(BaseCommand):
             invoice.status = Invoice.Status.DRAFT
             invoice.save()
 
-            # Add 2-4 line items
+            # Add 2-4 line items using Decimal (not float) for money fidelity
             for _ in range(random.randint(2, 4)):
+                qty = Decimal(str(round(random.uniform(1.0, 10.0), 2)))
+                price = Decimal(str(round(random.uniform(50.0, 150.0), 2)))
                 LineItem.objects.create(
                     invoice=invoice,
                     description=random.choice(descriptions),
-                    quantity=round(random.uniform(1.0, 10.0), 2),
-                    unit_price=round(random.uniform(50.0, 150.0), 2)
+                    quantity=qty,
+                    unit_price=price,
                 )
-            
+
             # Save again to calculate total
             invoice.save()
-            
+
             # Now update to actual target status
             invoice.status = statuses[i]
-            # Bypass custom save to avoid recalculating total if not draft, though custom save handles this.
-            # We call save() again which will skip recalculate_total if status != DRAFT.
             invoice.save()
 
         self.stdout.write(self.style.SUCCESS("Created 5 invoices with line items."))
