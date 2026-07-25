@@ -402,6 +402,16 @@
         </header>
         {% endif %}
 
+        {% if messages %}
+        <div class="flash-messages" style="display:flex;flex-direction:column;gap:10px;margin-bottom:8px;">
+            {% for message in messages %}
+            <div class="flash-message" style="padding:12px 16px;border-radius:10px;font-size:14px;font-weight:500;border:1px solid var(--border-color);background:#fff;{% if message.tags == 'error' %}border-color:#fecaca;background:#fef2f2;color:#b91c1c;{% elif message.tags == 'success' %}border-color:#bbf7d0;background:#f0fdf4;color:#166534;{% endif %}">
+                {{ message }}
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
         {% block content %}{% endblock %}
     </div>
 
