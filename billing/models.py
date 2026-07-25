@@ -1,6 +1,9 @@
 import datetime
-from django.db import models, transaction
+from decimal import Decimal
+from django.core.validators import MinValueValidator
+from django.db import models
 from django.contrib.auth.models import User
+
 
 class Client(models.Model):
     owner = models.ForeignKey(User, on_delete=models.CASCADE, related_name='clients')
@@ -12,6 +15,7 @@ class Client(models.Model):
 
     def __str__(self):
         return self.name
+
 
 class Invoice(models.Model):
     class Status(models.TextChoices):
@@ -25,7 +29,7 @@ class Invoice(models.Model):
     status = models.CharField(max_length=10, choices=Status.choices, default=Status.DRAFT)
     issue_date = models.DateField(default=datetime.date.today)
     due_date = models.DateField(null=True, blank=True)
-    total = models.DecimalField(max_digits=12, decimal_places=2, default=0.00)
+    total = models.DecimalField(max_digits=12, decimal_places=2, default=Decimal('0.00'))
     notes = models.TextField(blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -41,20 +45,29 @@ class Invoice(models.Model):
     def recalculate_total(self):
         """Recalculates total from LineItems."""
         if self.pk:
-            self.total = sum(item.subtotal for item in self.items.all())
+            self.total = sum((item.subtotal for item in self.items.all()), Decimal('0.00'))
         else:
-            self.total = 0
+            self.total = Decimal('0.00')
 
     def save(self, *args, **kwargs):
         if self.status == self.Status.DRAFT:
             self.recalculate_total()
         super().save(*args, **kwargs)
 
+
 class LineItem(models.Model):
     invoice = models.ForeignKey(Invoice, on_delete=models.CASCADE, related_name='items')
     description = models.CharField(max_length=255)
-    quantity = models.DecimalField(max_digits=10, decimal_places=2)
-    unit_price = models.DecimalField(max_digits=12, decimal_places=2)
+    quantity = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        validators=[MinValueValidator(Decimal('0.01'))],
+    )
+    unit_price = models.DecimalField(
+        max_digits=12,
+        decimal_places=2,
+        validators=[MinValueValidator(Decimal('0.00'))],
+    )
 
     @property
     def subtotal(self):

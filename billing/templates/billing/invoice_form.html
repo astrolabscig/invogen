@@ -75,6 +75,11 @@
         </div>
 
         <h3 style="font-family: 'Outfit', sans-serif; font-size: 18px; margin-top: 30px; margin-bottom: 15px;">Line Items</h3>
+        {% if formset.non_form_errors %}
+        <div style="margin-bottom: 12px; padding: 12px 14px; border-radius: 10px; background: #fef2f2; border: 1px solid #fecaca; color: #b91c1c; font-size: 13px; font-weight: 500;">
+            {{ formset.non_form_errors }}
+        </div>
+        {% endif %}
         {{ formset.management_form }}
         <div id="formset-container" style="display: flex; flex-direction: column; gap: 12px;">
             {% for inline_form in formset %}
