@@ -1,20 +1,21 @@
-from django.shortcuts import render, get_object_or_404, redirect
-from django.urls import reverse_lazy, reverse
+from django.shortcuts import get_object_or_404, redirect
+from django.urls import reverse_lazy
 from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView, View, TemplateView
 from django.contrib.auth.mixins import LoginRequiredMixin
+from django.contrib import messages
 from django.db import transaction
-from django.db.models import Sum, Count, Q
+from django.db.models import Sum, Count, Q, Prefetch
 from django.http import HttpResponseBadRequest
 from django.contrib.auth.forms import UserCreationForm
+
+from .models import Invoice, LineItem, Client
+from .forms import InvoiceForm, LineItemFormSet
+
 
 class RegisterView(CreateView):
     form_class = UserCreationForm
     template_name = 'registration/register.html'
     success_url = reverse_lazy('login')
-
-
-from .models import Invoice, LineItem, Client
-from .forms import InvoiceForm, LineItemFormSet
 
 class ClientOwnershipMixin(LoginRequiredMixin):
     def get_queryset(self):
@@ -88,6 +89,11 @@ class InvoiceDetailView(InvoiceOwnershipMixin, DetailView):
     template_name = 'billing/invoice_detail.html'
     context_object_name = 'invoice'
 
+    def get_queryset(self):
+        return super().get_queryset().select_related('client').prefetch_related(
+            Prefetch('items', queryset=LineItem.objects.order_by('pk'))
+        )
+
 class InvoiceCreateView(InvoiceOwnershipMixin, CreateView):
     model = Invoice
     form_class = InvoiceForm
@@ -128,6 +134,18 @@ class InvoiceUpdateView(InvoiceOwnershipMixin, UpdateView):
     template_name = 'billing/invoice_form.html'
     success_url = reverse_lazy('invoice_list')
 
+    def dispatch(self, request, *args, **kwargs):
+        if not request.user.is_authenticated:
+            return self.handle_no_permission()
+        invoice = get_object_or_404(Invoice.objects.filter(owner=request.user), pk=kwargs['pk'])
+        if invoice.status != Invoice.Status.DRAFT:
+            messages.error(
+                request,
+                'Only draft invoices can be edited. Issued (sent/paid) invoices are locked.'
+            )
+            return redirect('invoice_detail', pk=invoice.pk)
+        return super().dispatch(request, *args, **kwargs)
+
     def get_form_kwargs(self):
         kwargs = super().get_form_kwargs()
         kwargs['user'] = self.request.user
@@ -158,6 +176,18 @@ class InvoiceDeleteView(InvoiceOwnershipMixin, DeleteView):
     model = Invoice
     template_name = 'billing/invoice_confirm_delete.html'
     success_url = reverse_lazy('invoice_list')
+
+    def dispatch(self, request, *args, **kwargs):
+        if not request.user.is_authenticated:
+            return self.handle_no_permission()
+        invoice = get_object_or_404(Invoice.objects.filter(owner=request.user), pk=kwargs['pk'])
+        if invoice.status != Invoice.Status.DRAFT:
+            messages.error(
+                request,
+                'Only draft invoices can be deleted. Issued invoices must remain for audit trail.'
+            )
+            return redirect('invoice_detail', pk=invoice.pk)
+        return super().dispatch(request, *args, **kwargs)
 
 class InvoiceStatusUpdateView(InvoiceOwnershipMixin, View):
     def post(self, request, pk, new_status):
