@@ -3,10 +3,32 @@ from django.forms import BaseInlineFormSet, inlineformset_factory
 from .models import Invoice, LineItem, Client
 
 
+class ClientForm(forms.ModelForm):
+    class Meta:
+        model = Client
+        fields = ['name', 'email', 'company', 'address']
+
+    def __init__(self, *args, **kwargs):
+        self.user = kwargs.pop('user', None)
+        super().__init__(*args, **kwargs)
+
+    def clean_email(self):
+        email = self.cleaned_data['email'].lower()
+        if self.user:
+            existing = Client.objects.filter(owner=self.user, email=email)
+            if self.instance.pk:
+                existing = existing.exclude(pk=self.instance.pk)
+            if existing.exists():
+                raise forms.ValidationError("You already have a client with this email.")
+        return email
+
+
 class InvoiceForm(forms.ModelForm):
     class Meta:
         model = Invoice
-        fields = ['client', 'number', 'issue_date', 'due_date', 'notes']
+        # 'number' is intentionally excluded: it's auto-assigned per-owner
+        # sequentially (see Invoice.next_number_for), never user-entered.
+        fields = ['client', 'issue_date', 'due_date', 'notes']
         widgets = {
             'issue_date': forms.DateInput(attrs={'type': 'date'}),
             'due_date': forms.DateInput(attrs={'type': 'date'}),

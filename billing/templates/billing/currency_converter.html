@@ -1,0 +1,64 @@
+{% extends 'base.html' %}
+
+{% block nav_tools %}active{% endblock %}
+
+{% block header_title %}Currency Converter{% endblock %}
+{% block header_subtitle %}Quick FX estimate for pricing drafts{% endblock %}
+
+{% block content %}
+<div class="card" style="max-width: 480px;">
+    <form method="post">
+        {% csrf_token %}
+
+        <div class="form-group-premium" style="display:flex; flex-direction:column; gap:6px; margin-bottom:20px;">
+            <label for="id_amount" style="font-size:13px; font-weight:600; color:var(--text-dark);">Amount</label>
+            <input type="text" id="id_amount" name="amount" value="{{ amount|default:'' }}"
+                   placeholder="e.g. 100.00" required
+                   style="padding:10px 14px; border:1px solid var(--border-color); border-radius:8px; font-family:'Inter', sans-serif; font-size:14px; width:100%; box-sizing:border-box;">
+        </div>
+
+        <div style="display:flex; gap:16px; margin-bottom:20px;">
+            <div class="form-group-premium" style="display:flex; flex-direction:column; gap:6px; flex:1;">
+                <label for="id_base" style="font-size:13px; font-weight:600; color:var(--text-dark);">From</label>
+                <select id="id_base" name="base" style="padding:10px 14px; border:1px solid var(--border-color); border-radius:8px; font-family:'Inter', sans-serif; font-size:14px;">
+                    {% for code, label in currencies %}
+                    <option value="{{ code }}" {% if code == base %}selected{% endif %}>{{ label }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="form-group-premium" style="display:flex; flex-direction:column; gap:6px; flex:1;">
+                <label for="id_target" style="font-size:13px; font-weight:600; color:var(--text-dark);">To</label>
+                <select id="id_target" name="target" style="padding:10px 14px; border:1px solid var(--border-color); border-radius:8px; font-family:'Inter', sans-serif; font-size:14px;">
+                    {% for code, label in currencies %}
+                    <option value="{{ code }}" {% if code == target %}selected{% endif %}>{{ label }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+        </div>
+
+        <button type="submit" class="btn-premium">Convert</button>
+    </form>
+
+    {% if error %}
+    <p style="margin-top:20px; color:#b91c1c; font-size:14px;">{{ error }}</p>
+    {% endif %}
+
+    {% if conversion %}
+    <div style="margin-top:24px; padding:20px; border:1px solid var(--border-color); border-radius:12px; background-color:#fafbfc;">
+        <p style="font-size:22px; font-weight:700; font-family:'Outfit', sans-serif;">
+            {{ conversion.amount }} {{ conversion.base }} = {{ conversion.result }} {{ conversion.target }}
+        </p>
+        <p style="margin-top:6px; font-size:13px; color:var(--text-muted);">
+            Rate: 1 {{ conversion.base }} = {{ conversion.rate }} {{ conversion.target }}
+            {% if conversion.as_of %} (as of {{ conversion.as_of }}){% endif %}
+        </p>
+        <p style="margin-top:12px; font-size:12px; font-weight:600; color:#b45309;">
+            This is an indicative mid-market rate. Paystack's actual conversion rate is set at
+            settlement, is not published in advance, and may differ. There is no live "Paystack rate"
+            to preview before a transaction.
+        </p>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

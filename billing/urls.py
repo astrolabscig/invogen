@@ -24,4 +24,16 @@ urlpatterns = [
     path('invoices/<int:pk>/edit/', views.InvoiceUpdateView.as_view(), name='invoice_update'),
     path('invoices/<int:pk>/delete/', views.InvoiceDeleteView.as_view(), name='invoice_delete'),
     path('invoices/<int:pk>/status/<str:new_status>/', views.InvoiceStatusUpdateView.as_view(), name='invoice_status_update'),
+    path('invoices/<int:pk>/send/', views.InvoiceSendView.as_view(), name='invoice_send'),
+    path('invoices/<int:pk>/pdf-preview/', views.InvoicePdfPreviewView.as_view(), name='invoice_pdf_preview'),
+
+    # Tools
+    path('tools/converter/', views.CurrencyConverterView.as_view(), name='currency_converter'),
+
+    # Public (unauthenticated) invoice URLs
+    path('pay/<uuid:token>/', views.PublicInvoiceDetailView.as_view(), name='public_invoice'),
+    path('pay/<uuid:token>/checkout/', views.PublicInvoiceCheckoutView.as_view(), name='public_invoice_checkout'),
+
+    # Webhooks
+    path('webhooks/paystack/', views.paystack_webhook, name='paystack_webhook'),
 ]

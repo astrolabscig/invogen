@@ -366,6 +366,12 @@
                     <span>Invoices</span>
                 </a>
             </li>
+            <li class="menu-item {% block nav_tools %}{% endblock %}">
+                <a href="{% url 'currency_converter' %}">
+                    <i class="fa-solid fa-money-bill-transfer"></i>
+                    <span>Currency Converter</span>
+                </a>
+            </li>
         </ul>
 
         <div class="user-profile-sidebar">

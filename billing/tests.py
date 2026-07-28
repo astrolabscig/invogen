@@ -79,15 +79,23 @@ class OwnershipAndStatusTests(TestCase):
         response = self.http.get(reverse('invoice_detail', kwargs={'pk': self.invoice.pk}))
         self.assertEqual(response.status_code, 404)
 
-    def test_status_transition_draft_to_sent_to_paid(self):
+    def test_status_update_rejects_draft_to_sent(self):
+        # DRAFT->SENT no longer goes through this view at all: it only
+        # happens via InvoiceSendView (billing/views.py), which generates
+        # the PDF, emails the client, and freezes the total.
         self.http.login(username='owner', password='pass12345')
-        r1 = self.http.post(
+        response = self.http.post(
             reverse('invoice_status_update', kwargs={'pk': self.invoice.pk, 'new_status': 'sent'})
         )
-        self.assertEqual(r1.status_code, 302)
+        self.assertEqual(response.status_code, 400)
         self.invoice.refresh_from_db()
-        self.assertEqual(self.invoice.status, Invoice.Status.SENT)
+        self.assertEqual(self.invoice.status, Invoice.Status.DRAFT)
 
+    def test_status_transition_sent_to_paid(self):
+        self.invoice.status = Invoice.Status.SENT
+        self.invoice.save()
+
+        self.http.login(username='owner', password='pass12345')
         r2 = self.http.post(
             reverse('invoice_status_update', kwargs={'pk': self.invoice.pk, 'new_status': 'paid'})
         )
