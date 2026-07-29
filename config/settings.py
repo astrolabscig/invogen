@@ -49,6 +49,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'anymail',
     'billing',
 ]
 
@@ -162,24 +163,26 @@ LOGOUT_REDIRECT_URL = 'login'
 
 
 # Email
-# https://docs.djangoproject.com/en/5.2/topics/email/
-# Console backend by default (prints emails to the terminal — the dev-safe
-# default with no SMTP credentials needed). Setting EMAIL_HOST via env is
-# what switches production to real SMTP; no code change needed either way.
-EMAIL_HOST = os.environ.get('EMAIL_HOST', '')
-EMAIL_BACKEND = (
-    'django.core.mail.backends.smtp.EmailBackend'
-    if EMAIL_HOST
-    else 'django.core.mail.backends.console.EmailBackend'
-)
+# https://docs.djangoproject.com/en/5.2/topics/email/ | https://anymail.dev/en/stable/esps/resend/
+# Resend's HTTP API (via Anymail), not SMTP: Railway blocks outbound SMTP
+# ports (587/465) entirely, which is exactly what was causing the hung
+# connections/WORKER TIMEOUTs — HTTPS (443) isn't blocked.
+#
+# os.environ.get (not bare os.environ[...]) is deliberate here: a hard
+# required-env-var access would crash settings import in local dev, before
+# the console-backend fallback below ever gets a chance to run.
+RESEND_API_KEY = os.environ.get('RESEND_API_KEY')
+ANYMAIL = {"RESEND_API_KEY": RESEND_API_KEY}
+EMAIL_BACKEND = "anymail.backends.resend.EmailBackend"
 
-DEFAULT_FROM_EMAIL = os.environ.get('DEFAULT_FROM_EMAIL', 'invoices@example.com')
-EMAIL_PORT = int(os.environ.get('EMAIL_PORT', '25'))
-EMAIL_HOST_USER = os.environ.get('EMAIL_HOST_USER', '')
-EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD', '')
-EMAIL_USE_TLS = os.environ.get('EMAIL_USE_TLS', 'False').lower() == 'true'
-# Without this, a hung SMTP connection blocks the request indefinitely —
-# fail fast instead of hanging a gunicorn worker until it hits WORKER TIMEOUT.
+# Local dev fallback: no RESEND_API_KEY configured -> print to console
+# instead of calling (and failing against) the Resend API.
+if not RESEND_API_KEY:
+    EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
+
+DEFAULT_FROM_EMAIL = os.environ.get('DEFAULT_FROM_EMAIL', 'onboarding@resend.dev')
+# Harmless for the API backend too — Anymail still respects it as a
+# request-level timeout, so a slow Resend API call also fails fast.
 EMAIL_TIMEOUT = 10
 
 
