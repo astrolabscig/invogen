@@ -10,27 +10,17 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
     <!-- FontAwesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    {% include 'billing/_brand.html' %}
     <style>
         :root {
-            --bg-main: #f5f6f8;
-            --bg-sidebar: #ffffff;
-            --text-dark: #1a1d1f;
-            --text-muted: #6f767e;
-            --border-color: #efeff4;
-            --lime-active: #d2f35c;
-            --lime-text: #1a1d1f;
-            
-            /* Card Colors matching the design */
+            /* Card colors matching the design — dashboard-stat-tile specific,
+               not part of the shared brand (billing/_brand.html), so kept here. */
             --card-purple-bg: #e8e1f5;
             --card-purple-text: #6b46c1;
             --card-blue-bg: #e1ebf5;
             --card-blue-text: #2b6cb0;
             --card-green-bg: #e1f5ec;
             --card-green-text: #2f855a;
-            
-            --shadow-subtle: 0px 4px 12px rgba(0, 0, 0, 0.03);
-            --shadow-card: 0px 10px 30px rgba(0, 0, 0, 0.04);
-            --transition-smooth: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
         * {

@@ -1,0 +1,51 @@
+<!--
+  Invogen brand palette + fonts, defined ONCE here and referenced everywhere:
+  included by base.html (authenticated app), invoice_pdf.html (WeasyPrint,
+  no network dependency at render time), and available to any future
+  standalone document. Values sampled from the live app's dashboard —
+  keep this the single source of truth rather than re-hardcoding hexes.
+-->
+<style>
+    :root {
+        --bg-main: #f5f6f8;
+        --bg-sidebar: #ffffff;
+        --text-dark: #1a1d1f;
+        --text-muted: #6f767e;
+        --border-color: #efeff4;
+        --lime-active: #d2f35c;
+        --lime-text: #1a1d1f;
+        --shadow-subtle: 0px 4px 12px rgba(0, 0, 0, 0.03);
+        --shadow-card: 0px 10px 30px rgba(0, 0, 0, 0.04);
+        --transition-smooth: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+
+        /* PDF/email-safe: no @font-face, no remote fetch, renders identically
+           whether or not the container has network access at request time. */
+        --font-sans: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+    }
+
+    /* Shared status badge — used by invoice_detail.html and public_invoice.html
+       (both already reference these classes; this is the first place they're
+       actually defined). */
+    .badge {
+        display: inline-block;
+        padding: 4px 12px;
+        border-radius: 999px;
+        font-size: 12px;
+        font-weight: 700;
+        letter-spacing: 0.3px;
+        text-transform: uppercase;
+    }
+    .badge.bg-draft {
+        background-color: var(--border-color);
+        color: var(--text-muted);
+    }
+    .badge.bg-sent {
+        background-color: #eef0f4;
+        color: var(--text-dark);
+        border: 1px solid var(--border-color);
+    }
+    .badge.bg-paid {
+        background-color: var(--lime-active);
+        color: var(--lime-text);
+    }
+</style>

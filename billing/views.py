@@ -262,7 +262,7 @@ class InvoiceSendView(InvoiceOwnershipMixin, View):
     def post(self, request, pk):
         invoice = get_object_or_404(self.get_queryset(), pk=pk)
         try:
-            send_invoice(invoice)
+            send_invoice(invoice, request)
         except ValueError as e:
             messages.error(request, str(e))
             return redirect('invoice_detail', pk=invoice.pk)
