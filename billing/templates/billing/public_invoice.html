@@ -1,58 +1,181 @@
 {% extends 'base.html' %}
 
 {% block content %}
-<div class="card" style="max-width: 640px;">
-    <div class="card-title-row" style="margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center;">
+<style>
+    /* base.html caps the anonymous-page wrapper at 500px (sized for the
+       login/register forms, which share it and have no max-width of their
+       own) — too narrow for a 640px invoice card. Widen it here only, so
+       login/register are unaffected. */
+    .main-wrapper {
+        max-width: 720px !important;
+    }
+
+    .public-invoice-brandmark {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        margin-bottom: 24px;
+        color: var(--text-muted);
+        font-size: 13px;
+        font-weight: 600;
+    }
+
+    .public-invoice-brandmark .logo-tile {
+        width: 22px;
+        height: 22px;
+        background: var(--text-dark);
+        border-radius: 6px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        color: #ffffff;
+        font-size: 11px;
+    }
+
+    .public-invoice-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        gap: 16px;
+        padding-bottom: 18px;
+        border-bottom: 3px solid var(--lime-active);
+        margin-bottom: 24px;
+    }
+
+    .public-invoice-header .sender-label {
+        font-size: 11px;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        color: var(--text-muted);
+        margin-bottom: 4px;
+    }
+
+    .public-invoice-header .sender-name {
+        font-family: 'Outfit', sans-serif;
+        font-size: 22px;
+        font-weight: 700;
+        color: var(--text-dark);
+    }
+
+    .public-invoice-header .invoice-meta {
+        text-align: right;
+    }
+
+    .public-invoice-header .invoice-number {
+        font-family: 'Outfit', sans-serif;
+        font-size: 18px;
+        font-weight: 700;
+        color: var(--text-dark);
+    }
+
+    .bill-to-block {
+        margin-bottom: 24px;
+    }
+
+    .bill-to-block h4 {
+        font-size: 11px;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        color: var(--text-muted);
+        margin-bottom: 6px;
+    }
+
+    .bill-to-block .client-name {
+        font-size: 15px;
+        font-weight: 700;
+        color: var(--text-dark);
+    }
+
+    .bill-to-block .client-meta {
+        font-size: 13px;
+        color: var(--text-muted);
+        margin-top: 2px;
+    }
+
+    .total-row-lime th {
+        border-top: 2px solid var(--lime-active) !important;
+        background-color: #ffffff !important;
+        padding-top: 16px !important;
+    }
+
+    @media (max-width: 600px) {
+        .public-invoice-header {
+            flex-direction: column;
+        }
+        .public-invoice-header .invoice-meta {
+            text-align: left;
+        }
+        table.premium-table th, table.premium-table td {
+            padding: 12px 8px;
+            font-size: 13px;
+        }
+    }
+</style>
+
+<div class="public-invoice-brandmark">
+    <span class="logo-tile"><i class="fa-solid fa-bolt"></i></span>
+    Invoice via Invogen
+</div>
+
+<div class="card" style="max-width: 640px; margin: 0 auto;">
+    <div class="public-invoice-header">
         <div>
-            <h2 style="font-family: 'Outfit', sans-serif; font-size: 24px; font-weight: 700;">Invoice #{{ invoice.number }}</h2>
-            <span class="badge bg-{{ invoice.status|lower }}" style="margin-top: 8px;">{{ invoice.status }}</span>
+            <div class="sender-label">Invoice from</div>
+            <div class="sender-name">{{ invoice.owner.get_full_name|default:invoice.owner.username }}</div>
         </div>
-        <div style="text-align: right; font-size: 14px; color: var(--text-muted);">
-            From <strong style="color: var(--text-dark);">{{ invoice.owner.get_full_name|default:invoice.owner.username }}</strong>
+        <div class="invoice-meta">
+            <div class="invoice-number">#{{ invoice.number }}</div>
+            <span class="badge bg-{{ invoice.status|lower }}" style="margin-top: 8px; display: inline-block;">{{ invoice.status }}</span>
         </div>
     </div>
 
-    <p style="margin-bottom: {% if invoice.client.address %}4px{% else %}20px{% endif %};">
-        <strong>Billed to:</strong> {{ invoice.client.name }}
-        {% if invoice.client.company %}({{ invoice.client.company }}){% endif %}
-    </p>
-    {% if invoice.client.address %}
-    <p style="margin-bottom: 20px; font-size: 13px; color: var(--text-muted);">{{ invoice.client.address|linebreaksbr }}</p>
-    {% endif %}
+    <div class="bill-to-block">
+        <h4>Billed To</h4>
+        <div class="client-name">{{ invoice.client.name }}</div>
+        {% if invoice.client.company %}
+        <div class="client-meta">{{ invoice.client.company }}</div>
+        {% endif %}
+        {% if invoice.client.address %}
+        <div class="client-meta">{{ invoice.client.address|linebreaksbr }}</div>
+        {% endif %}
+    </div>
 
-    <table class="premium-table">
-        <thead>
-            <tr>
-                <th>Description</th>
-                <th style="text-align: right;">Quantity</th>
-                <th style="text-align: right;">Unit Price</th>
-                <th style="text-align: right;">Subtotal</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for item in invoice.items.all %}
-            <tr>
-                <td style="font-weight: 500;">{{ item.description }}</td>
-                <td style="text-align: right;">{{ item.quantity }}</td>
-                <td style="text-align: right;">{{ invoice.get_currency_symbol }}{{ item.unit_price }}</td>
-                <td style="text-align: right; font-weight: 600;">{{ invoice.get_currency_symbol }}{{ item.subtotal }}</td>
-            </tr>
-            {% endfor %}
-        </tbody>
-        <tfoot>
-            <tr style="background-color: #fafbfc;">
-                <th colspan="3" style="text-align: right; font-size: 14px; font-weight: 700; color: var(--text-dark);">Total:</th>
-                <th style="text-align: right; font-size: 16px; font-weight: 700; color: var(--text-dark);">{{ invoice.get_currency_symbol }}{{ invoice.total }}</th>
-            </tr>
-        </tfoot>
-    </table>
+    <div style="overflow-x: auto;">
+        <table class="premium-table">
+            <thead>
+                <tr>
+                    <th>Description</th>
+                    <th style="text-align: right;">Quantity</th>
+                    <th style="text-align: right;">Unit Price</th>
+                    <th style="text-align: right;">Subtotal</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in invoice.items.all %}
+                <tr>
+                    <td style="font-weight: 500;">{{ item.description }}</td>
+                    <td style="text-align: right;">{{ item.quantity }}</td>
+                    <td style="text-align: right;">{{ invoice.get_currency_symbol }}{{ item.unit_price|floatformat:2 }}</td>
+                    <td style="text-align: right; font-weight: 600;">{{ invoice.get_currency_symbol }}{{ item.subtotal|floatformat:2 }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+            <tfoot>
+                <tr class="total-row-lime">
+                    <th colspan="3" style="text-align: right; font-size: 14px; font-weight: 700; color: var(--text-dark);">Total:</th>
+                    <th style="text-align: right; font-size: 18px; font-weight: 700; color: var(--text-dark);">{{ invoice.get_currency_symbol }}{{ invoice.total|floatformat:2 }}</th>
+                </tr>
+            </tfoot>
+        </table>
+    </div>
 
     <div style="margin-top: 30px;">
         {% if invoice.status == 'SENT' and invoice.currency == 'GHS' %}
         <form method="post" action="{% url 'public_invoice_checkout' invoice.token %}">
             {% csrf_token %}
-            <button type="submit" class="btn-premium" style="width: 100%; justify-content: center;">
-                <i class="fa-solid fa-lock"></i> Pay {{ invoice.get_currency_symbol }}{{ invoice.total }}
+            <button type="submit" class="btn-premium" style="width: 100%; justify-content: center; padding: 16px 24px; font-size: 15px;">
+                <i class="fa-solid fa-lock"></i> Pay {{ invoice.get_currency_symbol }}{{ invoice.total|floatformat:2 }}
             </button>
         </form>
         {% elif invoice.status == 'SENT' %}

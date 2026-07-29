@@ -1,0 +1,64 @@
+<!--
+  HTML alternative for the invoice-send email. Table-based layout, all CSS
+  inlined on the elements themselves: most email clients (Outlook chief
+  among them) strip <style> blocks and don't support flexbox/grid, so
+  nothing here can rely on either. No SVG/logo image for the same reason
+  (Outlook's Word rendering engine doesn't support inline SVG) — the brand
+  touch is just the lime rule + near-black button, kept deliberately simple.
+-->
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:#f5f6f8; padding:32px 16px;">
+    <tr>
+        <td align="center">
+            <table role="presentation" width="480" cellpadding="0" cellspacing="0" style="max-width:480px; width:100%; background-color:#ffffff; border-radius:16px;">
+                <tr>
+                    <td style="padding:32px 32px 0 32px;">
+                        <div style="font-family:Helvetica, Arial, sans-serif; font-size:11px; font-weight:bold; letter-spacing:1.2px; text-transform:uppercase; color:#6f767e;">
+                            Invoice
+                        </div>
+                        <div style="font-family:Helvetica, Arial, sans-serif; font-size:22px; font-weight:bold; color:#1a1d1f; margin-top:4px;">
+                            {{ owner_name }}
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <td style="padding:18px 32px 0 32px;">
+                        <div style="height:3px; line-height:3px; font-size:0; background-color:#d2f35c;">&nbsp;</div>
+                    </td>
+                </tr>
+                <tr>
+                    <td style="padding:24px 32px 0 32px; font-family:Helvetica, Arial, sans-serif; font-size:15px; line-height:1.6; color:#1a1d1f;">
+                        Hi {{ invoice.client.name }},<br><br>
+                        {{ owner_name }} has sent you invoice <strong>#{{ invoice.number }}</strong> for
+                        <strong>{{ invoice.get_currency_symbol }}{{ invoice.total|floatformat:2 }}</strong>.
+                    </td>
+                </tr>
+                <tr>
+                    <td align="center" style="padding:28px 32px 0 32px;">
+                        <table role="presentation" cellpadding="0" cellspacing="0">
+                            <tr>
+                                <td align="center" bgcolor="#1a1d1f" style="border-radius:8px;">
+                                    <a href="{{ pay_url }}" target="_blank"
+                                       style="display:inline-block; padding:14px 28px; font-family:Helvetica, Arial, sans-serif; font-size:15px; font-weight:bold; color:#ffffff; text-decoration:none; border-radius:8px;">
+                                        View &amp; Pay Invoice
+                                    </a>
+                                </td>
+                            </tr>
+                        </table>
+                    </td>
+                </tr>
+                <tr>
+                    <td style="padding:20px 32px 0 32px; font-family:Helvetica, Arial, sans-serif; font-size:13px; line-height:1.5; color:#6f767e; text-align:center;">
+                        The invoice PDF is attached to this email.
+                    </td>
+                </tr>
+                <tr>
+                    <td style="padding:28px 32px 32px 32px;">
+                        <div style="border-top:1px solid #efeff4; padding-top:16px; font-family:Helvetica, Arial, sans-serif; font-size:11px; color:#6f767e; text-align:center;">
+                            Powered by Invogen
+                        </div>
+                    </td>
+                </tr>
+            </table>
+        </td>
+    </tr>
+</table>

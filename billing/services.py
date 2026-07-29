@@ -5,7 +5,7 @@ from uuid import uuid4
 import requests
 from django.conf import settings
 from django.core.files.base import ContentFile
-from django.core.mail import EmailMessage
+from django.core.mail import EmailMultiAlternatives
 from django.db import transaction
 from django.template.loader import render_to_string
 from django.urls import reverse
@@ -33,12 +33,16 @@ def render_invoice_pdf(invoice):
     return HTML(string=html_string, base_url=base_url).write_pdf()
 
 
-def send_invoice(invoice):
+def send_invoice(invoice, request):
     """Freezes the invoice total, renders and saves its PDF, and marks it
     SENT — all in one DB transaction. The confirmation email is sent only
     after that transaction commits, since an email can't be rolled back:
     sending it inside the block could leave the client holding an email for
-    an invoice the DB then discarded."""
+    an invoice the DB then discarded.
+
+    request is needed only to build the email's absolute "View & Pay" link
+    (request.build_absolute_uri) — same idiom initialize_payment already
+    uses for its callback_url. No other behavior depends on it."""
     if invoice.status != Invoice.Status.DRAFT:
         raise ValueError("Only draft invoices can be sent.")
 
@@ -51,19 +55,38 @@ def send_invoice(invoice):
         invoice.status = Invoice.Status.SENT
         invoice.save()
 
-    send_invoice_email(invoice)
+    send_invoice_email(invoice, request)
 
 
-def send_invoice_email(invoice):
-    """Emails the invoice PDF to the client. Assumes invoice.pdf is already
-    saved; call only after send_invoice's transaction has committed."""
+def send_invoice_email(invoice, request):
+    """Emails the invoice PDF to the client, as a plain-text message with an
+    HTML alternative (billing/templates/billing/email/invoice_email.html).
+    Assumes invoice.pdf is already saved; call only after send_invoice's
+    transaction has committed."""
     owner_name = invoice.owner.get_full_name() or invoice.owner.username
-    email = EmailMessage(
+    pay_url = request.build_absolute_uri(
+        reverse('public_invoice', kwargs={'token': invoice.token})
+    )
+
+    plain_body = (
+        f"{owner_name} has sent you invoice {invoice.number} for "
+        f"{invoice.get_currency_symbol()}{invoice.total}.\n\n"
+        f"View and pay online: {pay_url}\n\n"
+        "The invoice PDF is attached to this email."
+    )
+    html_body = render_to_string('billing/email/invoice_email.html', {
+        'invoice': invoice,
+        'owner_name': owner_name,
+        'pay_url': pay_url,
+    })
+
+    email = EmailMultiAlternatives(
         subject=f"Invoice {invoice.number} from {owner_name}",
-        body=f"Please find attached invoice {invoice.number}.",
+        body=plain_body,
         from_email=settings.DEFAULT_FROM_EMAIL,
         to=[invoice.client.email],
     )
+    email.attach_alternative(html_body, "text/html")
     with invoice.pdf.open('rb') as pdf_file:
         email.attach(f"invoice-{invoice.number}.pdf", pdf_file.read(), 'application/pdf')
     email.send()

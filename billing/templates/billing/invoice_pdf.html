@@ -3,35 +3,266 @@
 <head>
     <meta charset="utf-8">
     <title>Invoice {{ invoice.number }}</title>
+    {% include 'billing/_brand.html' %}
+    <style>
+        /* Print layout. No web fonts/@font-face here on purpose: WeasyPrint
+           renders this server-side with no guaranteed network access, and a
+           generic system-sans stack (see --font-sans in _brand.html) renders
+           identically every time without depending on a font fetch. */
+        @page {
+            size: A4;
+            margin: 2cm 1.8cm 2.6cm 1.8cm;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: var(--font-sans);
+            color: var(--text-dark);
+            background: #ffffff;
+            font-size: 11pt;
+            line-height: 1.5;
+            margin: 0;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            padding-bottom: 18px;
+            border-bottom: 3px solid var(--lime-active);
+            margin-bottom: 28px;
+        }
+
+        .sender-label {
+            font-size: 9pt;
+            text-transform: uppercase;
+            letter-spacing: 1.2px;
+            color: var(--text-muted);
+            margin-bottom: 4px;
+        }
+
+        .sender-name {
+            font-size: 20pt;
+            font-weight: 700;
+            letter-spacing: -0.3px;
+        }
+
+        .invoice-meta {
+            text-align: right;
+        }
+
+        .invoice-meta .invoice-number {
+            font-size: 15pt;
+            font-weight: 700;
+        }
+
+        .invoice-meta .meta-row {
+            font-size: 10pt;
+            color: var(--text-muted);
+            margin-top: 5px;
+        }
+
+        .invoice-meta .badge {
+            margin-top: 8px;
+        }
+
+        .bill-to {
+            margin-bottom: 30px;
+        }
+
+        .bill-to h4 {
+            font-size: 9pt;
+            text-transform: uppercase;
+            letter-spacing: 1.2px;
+            color: var(--text-muted);
+            margin: 0 0 6px 0;
+        }
+
+        .bill-to .client-name {
+            font-size: 12.5pt;
+            font-weight: 700;
+        }
+
+        .bill-to .client-meta {
+            font-size: 10pt;
+            color: var(--text-muted);
+            margin-top: 2px;
+        }
+
+        table.line-items {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+
+        table.line-items th {
+            text-align: left;
+            font-size: 8.5pt;
+            text-transform: uppercase;
+            letter-spacing: 0.6px;
+            color: var(--text-muted);
+            border-bottom: 1px solid var(--border-color);
+            padding: 8px 6px;
+        }
+
+        table.line-items td {
+            padding: 10px 6px;
+            border-bottom: 1px solid var(--border-color);
+            font-size: 10.5pt;
+        }
+
+        table.line-items th.num,
+        table.line-items td.num {
+            text-align: right;
+        }
+
+        .totals-block {
+            text-align: right;
+            margin-bottom: 10px;
+        }
+
+        .paid-stamp {
+            display: inline-block;
+            background: var(--lime-active);
+            color: var(--lime-text);
+            font-weight: 700;
+            font-size: 11pt;
+            letter-spacing: 2px;
+            padding: 6px 18px;
+            border-radius: 6px;
+            margin-bottom: 14px;
+        }
+
+        .totals {
+            width: 260px;
+            margin-left: auto;
+        }
+
+        .totals .total-row {
+            display: flex;
+            justify-content: space-between;
+            padding-top: 12px;
+            border-top: 2px solid var(--lime-active);
+            font-size: 15pt;
+            font-weight: 700;
+        }
+
+        .notes {
+            margin-top: 32px;
+            padding-top: 16px;
+            border-top: 1px solid var(--border-color);
+            font-size: 9.5pt;
+            color: var(--text-muted);
+        }
+
+        /* Repeats on every page — the standard WeasyPrint pattern for a
+           running footer. */
+        .footer {
+            position: fixed;
+            bottom: 0.9cm;
+            left: 0;
+            right: 0;
+            text-align: center;
+            font-size: 8pt;
+            color: var(--text-muted);
+        }
+
+        .footer .brand-mark {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .footer .logo-tile {
+            width: 14px;
+            height: 14px;
+            background: var(--text-dark);
+            border-radius: 4px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+    </style>
 </head>
 <body>
-    <p>Invoice #{{ invoice.number }}</p>
-    <p>Bill To: {{ invoice.client.name }}{% if invoice.client.company %} ({{ invoice.client.company }}){% endif %}</p>
-    {% if invoice.client.address %}
-    <p>{{ invoice.client.address|linebreaksbr }}</p>
-    {% endif %}
+    <div class="header">
+        <div>
+            <div class="sender-label">Invoice from</div>
+            <div class="sender-name">{{ invoice.owner.get_full_name|default:invoice.owner.username }}</div>
+        </div>
+        <div class="invoice-meta">
+            <div class="invoice-number">#{{ invoice.number }}</div>
+            <div class="meta-row">Issued {{ invoice.issue_date }}</div>
+            {% if invoice.due_date %}
+            <div class="meta-row">Due {{ invoice.due_date }}</div>
+            {% endif %}
+            <div class="badge bg-{{ invoice.status|lower }}">{{ invoice.status }}</div>
+        </div>
+    </div>
 
-    <table border="1" cellpadding="4" cellspacing="0">
+    <div class="bill-to">
+        <h4>Bill To</h4>
+        <div class="client-name">{{ invoice.client.name }}</div>
+        {% if invoice.client.company %}
+        <div class="client-meta">{{ invoice.client.company }}</div>
+        {% endif %}
+        {% if invoice.client.address %}
+        <div class="client-meta">{{ invoice.client.address|linebreaksbr }}</div>
+        {% endif %}
+    </div>
+
+    <table class="line-items">
         <thead>
             <tr>
                 <th>Description</th>
-                <th>Quantity</th>
-                <th>Unit Price</th>
-                <th>Subtotal</th>
+                <th class="num">Qty</th>
+                <th class="num">Unit Price</th>
+                <th class="num">Subtotal</th>
             </tr>
         </thead>
         <tbody>
             {% for item in invoice.items.all %}
             <tr>
                 <td>{{ item.description }}</td>
-                <td>{{ item.quantity }}</td>
-                <td>{{ item.unit_price }}</td>
-                <td>{{ item.subtotal }}</td>
+                <td class="num">{{ item.quantity }}</td>
+                <td class="num">{{ invoice.get_currency_symbol }}{{ item.unit_price|floatformat:2 }}</td>
+                <td class="num">{{ invoice.get_currency_symbol }}{{ item.subtotal|floatformat:2 }}</td>
             </tr>
             {% endfor %}
         </tbody>
     </table>
 
-    <p>Total: {{ invoice.total }}</p>
+    <div class="totals-block">
+        {% if invoice.status == 'PAID' %}
+        <div class="paid-stamp">PAID</div>
+        {% endif %}
+        <div class="totals">
+            <div class="total-row">
+                <span>Total</span>
+                <span>{{ invoice.get_currency_symbol }}{{ invoice.total }}</span>
+            </div>
+        </div>
+    </div>
+
+    {% if invoice.notes %}
+    <div class="notes">
+        <strong>Notes</strong><br>
+        {{ invoice.notes|linebreaksbr }}
+    </div>
+    {% endif %}
+
+    <div class="footer">
+        <span class="brand-mark">
+            <span class="logo-tile">
+                <svg width="8" height="8" viewBox="0 0 24 24" fill="#ffffff" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M13 2L3 14h7l-1 8 10-12h-7l1-8z"/>
+                </svg>
+            </span>
+            Powered by Invogen
+        </span>
+    </div>
 </body>
 </html>
