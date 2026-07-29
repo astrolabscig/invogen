@@ -1,3 +1,4 @@
+import logging
 import re
 from decimal import Decimal
 from uuid import uuid4
@@ -11,6 +12,8 @@ from django.template.loader import render_to_string
 from django.urls import reverse
 
 from .models import Invoice
+
+logger = logging.getLogger(__name__)
 
 PAYSTACK_INITIALIZE_URL = 'https://api.paystack.co/transaction/initialize'
 # Paystack transaction references may only contain alphanumerics, '-', '.', '='.
@@ -55,7 +58,13 @@ def send_invoice(invoice, request):
         invoice.status = Invoice.Status.SENT
         invoice.save()
 
-    send_invoice_email(invoice, request)
+    # Best-effort from here: the invoice is already committed as SENT, so a
+    # slow/failing SMTP connection must never surface as a 500 or hang the
+    # worker (see EMAIL_TIMEOUT in settings) — it's just logged.
+    try:
+        send_invoice_email(invoice, request)
+    except Exception:
+        logger.exception("Failed to email invoice %s after marking it SENT", invoice.pk)
 
 
 def send_invoice_email(invoice, request):
