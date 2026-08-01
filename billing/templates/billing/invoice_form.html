@@ -40,6 +40,44 @@
     .form-group-premium input:focus, .form-group-premium select:focus, .form-group-premium textarea:focus {
         border-color: #a0aec0;
     }
+
+    .formset-row {
+        display: grid;
+        grid-template-columns: 3fr 1fr 1fr auto;
+        gap: 15px;
+        align-items: end;
+        padding: 16px;
+        border: 1px solid var(--border-color);
+        border-radius: 12px;
+    }
+
+    .form-actions {
+        margin-top: 35px;
+        display: flex;
+        gap: 12px;
+    }
+
+    @media (max-width: 768px) {
+        .invoice-form-grid {
+            grid-template-columns: 1fr;
+        }
+        .formset-row {
+            grid-template-columns: 1fr;
+            align-items: stretch;
+        }
+        .formset-row .form-group-premium:last-child {
+            flex-direction: row;
+            align-items: center;
+            gap: 10px;
+        }
+        .form-actions {
+            flex-direction: column;
+        }
+        .form-actions .btn-premium {
+            width: 100%;
+            justify-content: center;
+        }
+    }
 </style>
 
 <div class="card">
@@ -85,7 +123,7 @@
         {{ formset.management_form }}
         <div id="formset-container" style="display: flex; flex-direction: column; gap: 12px;">
             {% for inline_form in formset %}
-            <div class="formset-row" style="display: grid; grid-template-columns: 3fr 1fr 1fr auto; gap: 15px; align-items: end; padding: 16px; border: 1px solid var(--border-color); border-radius: 12px;">
+            <div class="formset-row">
                 {% for hidden in inline_form.hidden_fields %}
                     {{ hidden }}
                 {% endfor %}
@@ -111,7 +149,7 @@
             {% endfor %}
         </div>
 
-        <div style="margin-top: 35px; display: flex; gap: 12px;">
+        <div class="form-actions">
             <button type="submit" class="btn-premium">Save Invoice</button>
             <a href="{% url 'invoice_list' %}" class="btn-premium btn-secondary-premium">Cancel</a>
         </div>

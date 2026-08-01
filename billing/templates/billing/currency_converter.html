@@ -6,6 +6,19 @@
 {% block header_subtitle %}Quick FX estimate for pricing drafts{% endblock %}
 
 {% block content %}
+<style>
+    .fx-row {
+        display: flex;
+        gap: 16px;
+        margin-bottom: 20px;
+    }
+    @media (max-width: 480px) {
+        .fx-row {
+            flex-direction: column;
+            gap: 20px;
+        }
+    }
+</style>
 <div class="card" style="max-width: 480px;">
     <form method="post">
         {% csrf_token %}
@@ -17,7 +30,7 @@
                    style="padding:10px 14px; border:1px solid var(--border-color); border-radius:8px; font-family:'Inter', sans-serif; font-size:14px; width:100%; box-sizing:border-box;">
         </div>
 
-        <div style="display:flex; gap:16px; margin-bottom:20px;">
+        <div class="fx-row">
             <div class="form-group-premium" style="display:flex; flex-direction:column; gap:6px; flex:1;">
                 <label for="id_base" style="font-size:13px; font-weight:600; color:var(--text-dark);">From</label>
                 <select id="id_base" name="base" style="padding:10px 14px; border:1px solid var(--border-color); border-radius:8px; font-family:'Inter', sans-serif; font-size:14px;">

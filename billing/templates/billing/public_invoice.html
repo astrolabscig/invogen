@@ -99,16 +99,60 @@
         padding-top: 16px !important;
     }
 
-    @media (max-width: 600px) {
+    @media (max-width: 768px) {
         .public-invoice-header {
             flex-direction: column;
         }
         .public-invoice-header .invoice-meta {
             text-align: left;
         }
-        table.premium-table th, table.premium-table td {
-            padding: 12px 8px;
-            font-size: 13px;
+
+        /* Line items become stacked cards instead of a table row on
+           phones — no sideways scrolling to see what's actually owed. */
+        .line-items-table thead {
+            display: none;
+        }
+        .line-items-table, .line-items-table tbody {
+            display: block;
+            width: 100%;
+        }
+        .line-items-table tbody tr {
+            display: block;
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            padding: 12px 14px;
+            margin-bottom: 10px;
+        }
+        .line-items-table tbody td {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 5px 0;
+            border-bottom: none;
+            text-align: right;
+        }
+        .line-items-table tbody td::before {
+            content: attr(data-label);
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.4px;
+            color: var(--text-muted);
+            font-weight: 600;
+            text-align: left;
+        }
+        .line-items-table tfoot tr {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .line-items-table tfoot th {
+            border: none !important;
+        }
+
+        /* Big, unmissable, thumb-friendly on a phone screen. */
+        .public-invoice-pay-btn {
+            min-height: 52px;
+            font-size: 16px !important;
         }
     }
 </style>
@@ -142,7 +186,7 @@
     </div>
 
     <div style="overflow-x: auto;">
-        <table class="premium-table">
+        <table class="premium-table line-items-table">
             <thead>
                 <tr>
                     <th>Description</th>
@@ -154,10 +198,10 @@
             <tbody>
                 {% for item in invoice.items.all %}
                 <tr>
-                    <td style="font-weight: 500;">{{ item.description }}</td>
-                    <td style="text-align: right;">{{ item.quantity }}</td>
-                    <td style="text-align: right;">{{ invoice.get_currency_symbol }}{{ item.unit_price|floatformat:2 }}</td>
-                    <td style="text-align: right; font-weight: 600;">{{ invoice.get_currency_symbol }}{{ item.subtotal|floatformat:2 }}</td>
+                    <td style="font-weight: 500;" data-label="Description">{{ item.description }}</td>
+                    <td style="text-align: right;" data-label="Quantity">{{ item.quantity }}</td>
+                    <td style="text-align: right;" data-label="Unit Price">{{ invoice.get_currency_symbol }}{{ item.unit_price|floatformat:2 }}</td>
+                    <td style="text-align: right; font-weight: 600;" data-label="Subtotal">{{ invoice.get_currency_symbol }}{{ item.subtotal|floatformat:2 }}</td>
                 </tr>
                 {% endfor %}
             </tbody>
@@ -174,7 +218,7 @@
         {% if invoice.status == 'SENT' and invoice.currency == 'GHS' %}
         <form method="post" action="{% url 'public_invoice_checkout' invoice.token %}">
             {% csrf_token %}
-            <button type="submit" class="btn-premium" style="width: 100%; justify-content: center; padding: 16px 24px; font-size: 15px;">
+            <button type="submit" class="btn-premium public-invoice-pay-btn" style="width: 100%; justify-content: center; padding: 16px 24px; font-size: 15px;">
                 <i class="fa-solid fa-lock"></i> Pay {{ invoice.get_currency_symbol }}{{ invoice.total|floatformat:2 }}
             </button>
         </form>
