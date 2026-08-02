@@ -26,6 +26,15 @@ from . import fx
 logger = logging.getLogger(__name__)
 
 
+class LandingView(TemplateView):
+    template_name = 'billing/landing.html'
+
+    def get(self, request, *args, **kwargs):
+        if request.user.is_authenticated:
+            return redirect('dashboard')
+        return super().get(request, *args, **kwargs)
+
+
 class RegisterView(CreateView):
     form_class = UserCreationForm
     template_name = 'registration/register.html'

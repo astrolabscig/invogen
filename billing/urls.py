@@ -3,8 +3,9 @@ from django.contrib.auth import views as auth_views
 from . import views
 
 urlpatterns = [
-    path('', views.DashboardView.as_view(), name='dashboard'),
-    
+    path('', views.LandingView.as_view(), name='landing'),
+    path('dashboard/', views.DashboardView.as_view(), name='dashboard'),
+
     # Auth URLs
     path('login/', auth_views.LoginView.as_view(template_name='registration/login.html'), name='login'),
     # Django 5.0+ LogoutView requires POST, so we can use a custom template or handle it. Let's use LogoutView.

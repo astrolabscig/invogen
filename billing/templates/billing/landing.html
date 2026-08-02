@@ -1,0 +1,647 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Invogen — Invoicing that pays itself off your plate</title>
+    <meta name="description" content="Invogen is freelance invoicing without the spreadsheet. Send a professional invoice, get paid through a secure link, and watch it reconcile itself.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    {% include 'billing/_brand.html' %}
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-main);
+            color: var(--text-dark);
+            line-height: 1.5;
+            overflow-x: hidden;
+        }
+
+        a { color: inherit; }
+
+        :focus-visible {
+            outline: 3px solid var(--lime-active);
+            outline-offset: 2px;
+            border-radius: 4px;
+        }
+
+        .wrap {
+            max-width: 1180px;
+            margin: 0 auto;
+            padding: 0 24px;
+        }
+
+        /* ---- Top bar ---- */
+        .site-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 28px 0;
+        }
+
+        .brandmark {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            text-decoration: none;
+        }
+
+        .logo-icon {
+            width: 34px;
+            height: 34px;
+            background: linear-gradient(135deg, #1a1d1f 0%, #3a3f42 100%);
+            border-radius: 9px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #fff;
+            font-weight: 700;
+        }
+
+        .brand-name {
+            font-family: 'Outfit', sans-serif;
+            font-size: 21px;
+            font-weight: 700;
+            letter-spacing: -0.4px;
+        }
+
+        .header-cta {
+            display: flex;
+            align-items: center;
+            gap: 18px;
+        }
+
+        .link-quiet {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text-muted);
+            text-decoration: none;
+        }
+
+        .link-quiet:hover { color: var(--text-dark); }
+
+        .btn-lime {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--text-dark);
+            color: #fff;
+            font-weight: 600;
+            font-size: 14px;
+            padding: 12px 22px;
+            border-radius: 12px;
+            border: none;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            transition: transform 0.2s ease, opacity 0.2s ease;
+        }
+
+        .btn-lime:hover { opacity: 0.9; transform: translateY(-1px); }
+
+        .btn-lime.big {
+            padding: 15px 28px;
+            font-size: 15px;
+            border-radius: 13px;
+        }
+
+        .btn-outline {
+            background: #fff;
+            color: var(--text-dark);
+            border: 1px solid var(--border-color);
+            font-weight: 600;
+            font-size: 15px;
+            padding: 14px 26px;
+            border-radius: 13px;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-outline:hover { background-color: #fff; border-color: #d8d9e0; }
+
+        /* ---- Hero ---- */
+        .hero {
+            display: grid;
+            grid-template-columns: 1.05fr 0.95fr;
+            gap: 56px;
+            align-items: center;
+            padding: 40px 0 80px;
+        }
+
+        .eyebrow {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-muted);
+            background: #fff;
+            border: 1px solid var(--border-color);
+            padding: 6px 14px;
+            border-radius: 999px;
+            margin-bottom: 22px;
+        }
+
+        .eyebrow .dot {
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            background: var(--lime-active);
+        }
+
+        .hero h1 {
+            font-family: 'Outfit', sans-serif;
+            font-weight: 700;
+            font-size: 46px;
+            line-height: 1.12;
+            letter-spacing: -0.8px;
+            margin-bottom: 20px;
+        }
+
+        .hero h1 .underline {
+            background-image: linear-gradient(var(--lime-active), var(--lime-active));
+            background-repeat: no-repeat;
+            background-size: 100% 12px;
+            background-position: 0 88%;
+        }
+
+        .hero-sub {
+            font-size: 17px;
+            color: var(--text-muted);
+            max-width: 480px;
+            margin-bottom: 32px;
+        }
+
+        .hero-actions {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            flex-wrap: wrap;
+        }
+
+        .hero-note {
+            margin-top: 18px;
+            font-size: 13px;
+            color: var(--text-muted);
+        }
+
+        /* ---- Hero mockup: a real invoice card, same classes/feel as the app ---- */
+        .mock-card {
+            background: #fff;
+            border-radius: 18px;
+            border: 1px solid var(--border-color);
+            box-shadow: var(--shadow-card);
+            padding: 26px;
+            max-width: 380px;
+            margin: 0 auto;
+            position: relative;
+        }
+
+        .mock-head {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            padding-bottom: 16px;
+            border-bottom: 2px solid var(--lime-active);
+            margin-bottom: 18px;
+        }
+
+        .mock-head .num {
+            font-family: 'Outfit', sans-serif;
+            font-size: 16px;
+            font-weight: 700;
+        }
+
+        .mock-head .to {
+            font-size: 12px;
+            color: var(--text-muted);
+            margin-top: 3px;
+        }
+
+        .status-stack {
+            position: relative;
+            height: 26px;
+            width: 78px;
+        }
+
+        .status-pill {
+            position: absolute;
+            top: 0;
+            right: 0;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 4px 12px;
+            border-radius: 999px;
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 0.3px;
+            text-transform: uppercase;
+            white-space: nowrap;
+        }
+
+        .status-pill.sent {
+            background: #eef0f4;
+            color: var(--text-dark);
+            border: 1px solid var(--border-color);
+            animation: pill-cycle-sent 5s infinite;
+        }
+
+        .status-pill.paid {
+            background: var(--lime-active);
+            color: #1a1d1f;
+            opacity: 0;
+            animation: pill-cycle-paid 5s infinite;
+        }
+
+        @keyframes pill-cycle-sent {
+            0%, 55% { opacity: 1; transform: scale(1); }
+            65%, 100% { opacity: 0; transform: scale(0.9); }
+        }
+
+        @keyframes pill-cycle-paid {
+            0%, 55% { opacity: 0; transform: scale(0.9); }
+            70%, 100% { opacity: 1; transform: scale(1); }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            .status-pill.sent { animation: none; opacity: 0; }
+            .status-pill.paid { animation: none; opacity: 1; }
+        }
+
+        .mock-line {
+            display: flex;
+            justify-content: space-between;
+            font-size: 13px;
+            padding: 9px 0;
+            border-bottom: 1px solid var(--border-color);
+            color: var(--text-muted);
+        }
+
+        .mock-line span:last-child { color: var(--text-dark); font-weight: 500; }
+
+        .mock-total {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-top: 16px;
+            margin-top: 4px;
+        }
+
+        .mock-total .label {
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--text-muted);
+        }
+
+        .mock-total .amount {
+            font-family: 'Outfit', sans-serif;
+            font-size: 22px;
+            font-weight: 700;
+        }
+
+        .mock-caption {
+            text-align: center;
+            font-size: 12px;
+            color: var(--text-muted);
+            margin-top: 14px;
+        }
+
+        /* ---- How it works ---- */
+        .section { padding: 64px 0; }
+
+        .section-head { margin-bottom: 36px; max-width: 560px; }
+
+        .section-kicker {
+            font-size: 12px;
+            font-weight: 700;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            color: var(--text-muted);
+            margin-bottom: 10px;
+        }
+
+        .section-head h2 {
+            font-family: 'Outfit', sans-serif;
+            font-size: 30px;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+        }
+
+        .flow {
+            display: flex;
+            align-items: stretch;
+            gap: 0;
+        }
+
+        .flow-step {
+            flex: 1;
+            position: relative;
+            padding: 0 20px 0 0;
+        }
+
+        .flow-step:not(:last-child)::after {
+            content: '';
+            position: absolute;
+            top: 17px;
+            right: -2px;
+            width: calc(100% - 8px);
+            height: 2px;
+            background: var(--lime-active);
+        }
+
+        .flow-num {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: #fff;
+            border: 2px solid var(--lime-active);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Outfit', sans-serif;
+            font-weight: 700;
+            font-size: 14px;
+            margin-bottom: 16px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .flow-step h3 {
+            font-family: 'Outfit', sans-serif;
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 6px;
+        }
+
+        .flow-step p {
+            font-size: 14px;
+            color: var(--text-muted);
+        }
+
+        /* ---- Features ---- */
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 18px;
+        }
+
+        .feature-card {
+            background: #fff;
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 24px;
+            box-shadow: var(--shadow-subtle);
+        }
+
+        .feature-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 11px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            margin-bottom: 16px;
+        }
+
+        .feature-icon.purple { background: #e8e1f5; color: #6b46c1; }
+        .feature-icon.blue { background: #e1ebf5; color: #2b6cb0; }
+        .feature-icon.green { background: #e1f5ec; color: #2f855a; }
+        .feature-icon.lime { background: var(--lime-active); color: #1a1d1f; }
+
+        .feature-card h3 {
+            font-family: 'Outfit', sans-serif;
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 6px;
+        }
+
+        .feature-card p {
+            font-size: 14px;
+            color: var(--text-muted);
+        }
+
+        /* ---- Final CTA ---- */
+        .cta-band {
+            background: var(--text-dark);
+            border-radius: 22px;
+            padding: 52px 40px;
+            text-align: center;
+            color: #fff;
+            margin: 20px 0 64px;
+        }
+
+        .cta-band h2 {
+            font-family: 'Outfit', sans-serif;
+            font-size: 28px;
+            font-weight: 700;
+            margin-bottom: 12px;
+        }
+
+        .cta-band p {
+            color: #b9bcc2;
+            font-size: 15px;
+            margin-bottom: 26px;
+        }
+
+        .cta-band .btn-lime {
+            background: var(--lime-active);
+            color: #1a1d1f;
+        }
+
+        /* ---- Footer ---- */
+        .site-footer {
+            border-top: 1px solid var(--border-color);
+            padding: 28px 0 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 12px;
+            font-size: 13px;
+            color: var(--text-muted);
+        }
+
+        .site-footer a { font-weight: 600; text-decoration: none; color: var(--text-dark); }
+        .site-footer a:hover { text-decoration: underline; }
+
+        /* ================= Responsive ================= */
+        @media (max-width: 1024px) {
+            .hero h1 { font-size: 38px; }
+            .feature-grid { grid-template-columns: 1fr 1fr; gap: 14px; }
+        }
+
+        @media (max-width: 860px) {
+            .hero {
+                grid-template-columns: 1fr;
+                gap: 40px;
+                padding: 24px 0 56px;
+                text-align: left;
+            }
+            .hero-visual { order: -1; }
+            .mock-card { max-width: 340px; }
+        }
+
+        @media (max-width: 640px) {
+            .wrap { padding: 0 18px; }
+            .site-header { padding: 20px 0; }
+            .brand-name { font-size: 18px; }
+            .hero h1 { font-size: 30px; }
+            .hero-sub { font-size: 15px; }
+            .btn-outline, .btn-lime.big { width: 100%; justify-content: center; }
+            .hero-actions { flex-direction: column; align-items: stretch; }
+            .section { padding: 44px 0; }
+            .section-head h2 { font-size: 24px; }
+            .flow {
+                flex-direction: column;
+                gap: 24px;
+            }
+            .flow-step:not(:last-child)::after { display: none; }
+            .feature-grid { grid-template-columns: 1fr; }
+            .cta-band { padding: 38px 22px; border-radius: 18px; }
+            .cta-band h2 { font-size: 22px; }
+            .cta-band .btn-lime { width: 100%; justify-content: center; }
+            .site-footer { flex-direction: column; align-items: flex-start; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="wrap">
+        <header class="site-header">
+            <a href="{% url 'landing' %}" class="brandmark">
+                <span class="logo-icon"><i class="fa-solid fa-bolt"></i></span>
+                <span class="brand-name">Invogen</span>
+            </a>
+            <div class="header-cta">
+                <a href="{% url 'login' %}" class="link-quiet">Log in</a>
+                <a href="{% url 'register' %}" class="btn-lime"><i class="fa-solid fa-arrow-right"></i> Get Started</a>
+            </div>
+        </header>
+    </div>
+
+    <main>
+        <div class="wrap">
+            <section class="hero">
+                <div class="hero-copy">
+                    <span class="eyebrow"><span class="dot"></span> Built for freelancers who invoice solo</span>
+                    <h1>Send an invoice.<br>Get paid.<br><span class="underline">It reconciles itself.</span></h1>
+                    <p class="hero-sub">Invogen is freelance invoicing without the spreadsheet. Create an invoice, send it as a PDF, and let clients pay through a secure link — the status updates on its own the moment the money lands.</p>
+                    <div class="hero-actions">
+                        <a href="{% url 'register' %}" class="btn-lime big"><i class="fa-solid fa-arrow-right"></i> Get Started — it's free</a>
+                        <a href="{% url 'login' %}" class="btn-outline">Log in</a>
+                    </div>
+                    <p class="hero-note">No card required. Set up your first invoice in a couple of minutes.</p>
+                </div>
+
+                <div class="hero-visual">
+                    <div class="mock-card" aria-hidden="true">
+                        <div class="mock-head">
+                            <div>
+                                <div class="num">Invoice #INV-0032</div>
+                                <div class="to">Billed to Kwame Studio Co.</div>
+                            </div>
+                            <div class="status-stack">
+                                <span class="status-pill sent">Sent</span>
+                                <span class="status-pill paid">Paid</span>
+                            </div>
+                        </div>
+                        <div class="mock-line"><span>Website redesign</span><span>$900.00</span></div>
+                        <div class="mock-line"><span>Brand assets</span><span>$300.00</span></div>
+                        <div class="mock-total">
+                            <span class="label">Total</span>
+                            <span class="amount">$1,200.00</span>
+                        </div>
+                    </div>
+                    <p class="mock-caption">A real invoice, mid-payment.</p>
+                </div>
+            </section>
+        </div>
+
+        <div class="wrap">
+            <section class="section">
+                <div class="section-head">
+                    <div class="section-kicker">How it works</div>
+                    <h2>Four steps, then you're done chasing payment.</h2>
+                </div>
+                <div class="flow">
+                    <div class="flow-step">
+                        <div class="flow-num">1</div>
+                        <h3>Create the invoice</h3>
+                        <p>Add your client and line items — Invogen numbers it for you.</p>
+                    </div>
+                    <div class="flow-step">
+                        <div class="flow-num">2</div>
+                        <h3>Send it as a PDF</h3>
+                        <p>Your client gets a clean, branded PDF straight to their inbox.</p>
+                    </div>
+                    <div class="flow-step">
+                        <div class="flow-num">3</div>
+                        <h3>They pay via a secure link</h3>
+                        <p>No account needed on their end — just a link and a card.</p>
+                    </div>
+                    <div class="flow-step">
+                        <div class="flow-num">4</div>
+                        <h3>It marks itself paid</h3>
+                        <p>The invoice updates automatically the moment payment clears.</p>
+                    </div>
+                </div>
+            </section>
+        </div>
+
+        <div class="wrap">
+            <section class="section">
+                <div class="section-head">
+                    <div class="section-kicker">What you get</div>
+                    <h2>The parts of invoicing that usually eat your evening.</h2>
+                </div>
+                <div class="feature-grid">
+                    <div class="feature-card">
+                        <div class="feature-icon lime"><i class="fa-solid fa-link"></i></div>
+                        <h3>Get paid online</h3>
+                        <p>Every invoice can carry a secure payment link, so clients can pay in a couple of taps instead of asking "where do I send this?"</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon green"><i class="fa-solid fa-check-double"></i></div>
+                        <h3>Automatic reconciliation</h3>
+                        <p>When a payment comes through, the matching invoice flips to Paid on its own. No manual bookkeeping, no forgetting to update a status.</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon blue"><i class="fa-solid fa-file-pdf"></i></div>
+                        <h3>Send professional invoices</h3>
+                        <p>Every invoice goes out as a clean, properly formatted PDF with your details, your line items, and your numbering — not a screenshot of a spreadsheet.</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon purple"><i class="fa-solid fa-lock"></i></div>
+                        <h3>Your data stays yours</h3>
+                        <p>Your clients and invoices belong to your account only. Nothing is shared, sold, or visible across other Invogen users.</p>
+                    </div>
+                </div>
+            </section>
+        </div>
+
+        <div class="wrap">
+            <div class="cta-band">
+                <h2>Stop tracking payments by memory.</h2>
+                <p>Create your first invoice in the time it takes to write the email you'd have sent instead.</p>
+                <a href="{% url 'register' %}" class="btn-lime big"><i class="fa-solid fa-arrow-right"></i> Get Started</a>
+            </div>
+        </div>
+    </main>
+
+    <div class="wrap">
+        <footer class="site-footer">
+            <span>Built by astrolab</span>
+            <a href="{% url 'login' %}">Log in to try Invogen →</a>
+        </footer>
+    </div>
+
+</body>
+</html>
